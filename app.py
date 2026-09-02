@@ -59,12 +59,12 @@ with left_col:
     else:
         max_skill_marks = max_marks # Defaults back to 40/80 for other skill subjects
         
-    sc_math = st.number_input(f"Mathematics (out of {max_marks})", 0, max_marks, int(max_marks*0.75))
-    sc_sci = st.number_input(f"Science (out of {max_marks})", 0, max_marks, int(max_marks*0.70))
-    sc_sst = st.number_input(f"Social Science (out of {max_marks})", 0, max_marks, int(max_marks*0.70))
-    sc_eng = st.number_input(f"English (out of {max_marks})", 0, max_marks, int(max_marks*0.80))
-    sc_lang = st.number_input(f"{lang_opt} (out of {max_marks})", 0, max_marks, int(max_marks*0.85))
-    sc_skill = st.number_input(f"{skill_opt} (out of {max_skill_marks})", 0, max_skill_marks, int(max_skill_marks*0.90))
+sc_math = st.number_input(f"Mathematics (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.75)), step=0.5)
+    sc_sci = st.number_input(f"Science (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
+    sc_sst = st.number_input(f"Social Science (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
+    sc_eng = st.number_input(f"English (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.80)), step=0.5)
+    sc_lang = st.number_input(f"{lang_opt} (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.85)), step=0.5)
+    sc_skill = st.number_input(f"{skill_opt} (out of {max_skill_marks})", 0.0, float(max_skill_marks), float(int(max_skill_marks*0.90)), step=0.5)
 
 with right_col:
     # Calculate percentages for the UI charts (dividing by their specific max marks)
