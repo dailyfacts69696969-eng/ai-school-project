@@ -10,6 +10,12 @@ st.set_page_config(page_title="EduPredict AI", layout="wide", initial_sidebar_st
 st.markdown("""
     <style>
     .stApp { background-color: #020617; color: #f1f5f9; }
+    
+    /* FIX FOR INVISIBLE TEXT: Force text to be black inside inputs and buttons */
+    .stTextInput input, .stNumberInput input, .stChatInput textarea, .stButton button, .stDownloadButton button {
+        color: #000000 !important; 
+    }
+    
     div[data-testid="stMetricValue"] { color: #818cf8; font-size: 2rem; font-weight: 800; }
     div[data-testid="stMetricLabel"] { color: #94a3b8; font-size: 0.9rem; }
     .glass-panel { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(30, 41, 59, 0.8); padding: 20px; border-radius: 15px; box-shadow: 0 0 15px rgba(99, 102, 241, 0.1); }
@@ -145,6 +151,7 @@ with right_col:
             st.error("⚠️ Please enter a student name on the left before running the analysis.")
         else:
             with st.spinner("Connecting to EduPredict AI Core..."):
+                # FIXED: Corrected the model name to gemini-1.5-flash
                 report_prompt = f"""
                 Act as a strict CBSE Data Analyst assisting a classroom teacher.
                 Student: {student_name} ({class_sec}, Roll: {roll_no}). Exam Phase: {exam_phase}
@@ -152,7 +159,7 @@ with right_col:
                 Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}, {lang_opt} {scores[lang_opt]:.1f}, {skill_opt} {scores[skill_opt]:.1f}.
                 Provide a structured, 4-bullet point report highlighting weaknesses and actionable strategies.
                 """
-                report_resp = client.models.generate_content(model="gemini-2.5-flash", contents=report_prompt)
+                report_resp = client.models.generate_content(model="gemini-1.5-flash", contents=report_prompt)
                 st.info("Report Output:")
                 st.write(report_resp.text)
 
@@ -160,27 +167,22 @@ with right_col:
     st.markdown("---")
     st.markdown("#### 💬 Quick Teacher Assistant")
     
-    # Creates a scrolling box so the chat doesn't take up the whole screen
     chat_box = st.container(height=300)
     
-    # Display previous chat messages
     with chat_box:
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-    # Accept new user input
     if prompt := st.chat_input("Ask me for lesson plans, email templates, or grading advice..."):
-        # Add user message to memory and show it
         st.session_state.messages.append({"role": "user", "content": prompt})
         with chat_box:
             with st.chat_message("user"):
                 st.markdown(prompt)
                 
-            # Send to Gemini and show the response
             with st.chat_message("assistant"):
-                chat_resp = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+                # FIXED: Corrected the model name to gemini-1.5-flash here too
+                chat_resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
                 st.markdown(chat_resp.text)
                 
-        # Save AI response to memory
         st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
