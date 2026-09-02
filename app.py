@@ -1,7 +1,6 @@
 import streamlit as st
 from google import genai
 import pandas as pd
-import random
 
 # Connect to Gemini
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
@@ -59,7 +58,7 @@ with left_col:
     else:
         max_skill_marks = max_marks # Defaults back to 40/80 for other skill subjects
         
-sc_math = st.number_input(f"Mathematics (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.75)), step=0.5)
+    sc_math = st.number_input(f"Mathematics (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.75)), step=0.5)
     sc_sci = st.number_input(f"Science (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
     sc_sst = st.number_input(f"Social Science (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
     sc_eng = st.number_input(f"English (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.80)), step=0.5)
@@ -99,6 +98,40 @@ with right_col:
         st.markdown("**Subject Performance (%)**")
         sub_data = pd.DataFrame({"Subject": list(scores.keys()), "Score": list(scores.values())}).set_index("Subject")
         st.bar_chart(sub_data, color="#10b981")
+
+    st.markdown("---")
+    st.markdown("#### 💾 Save Student Record")
+    
+    # Bundle all the current inputs into a Pandas DataFrame
+    student_record = pd.DataFrame({
+        "Name": [student_name if student_name else "Unknown"],
+        "Roll No": [roll_no],
+        "Class": [class_sec],
+        "Exam": [exam_phase],
+        "Attendance (%)": [attendance],
+        "Assignments (%)": [assignments],
+        "Participation (1-10)": [participation],
+        "Behavior (1-10)": [behavior],
+        "Math": [sc_math],
+        "Science": [sc_sci],
+        "SST": [sc_sst],
+        "English": [sc_eng],
+        lang_opt: [sc_lang],
+        skill_opt: [sc_skill],
+        "Final Average (%)": [round(avg_score, 1)]
+    })
+    
+    # Convert it to a CSV file format in the background
+    csv_file = student_record.to_csv(index=False).encode('utf-8')
+    
+    # Create the download button
+    st.download_button(
+        label=f"📥 Download {student_name if student_name else 'Student'} Data (CSV)",
+        data=csv_file,
+        file_name=f"{student_name if student_name else 'Student'}_{exam_phase.split()[0]}_Record.csv",
+        mime="text/csv",
+        use_container_width=True
+    )
 
     st.markdown("---")
     
