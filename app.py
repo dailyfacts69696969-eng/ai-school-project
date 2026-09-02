@@ -11,9 +11,19 @@ st.markdown("""
     <style>
     .stApp { background-color: #020617; color: #f1f5f9; }
     
-    /* FIX FOR INVISIBLE TEXT: Force text to be black inside inputs and buttons */
-    .stTextInput input, .stNumberInput input, .stChatInput textarea, .stButton button, .stDownloadButton button {
-        color: #000000 !important; 
+    /* FIX FOR INVISIBLE TEXT: Explicitly set background and white text */
+    .stTextInput input, .stNumberInput input, .stChatInput textarea {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border: 1px solid #334155 !important;
+    }
+    .stButton button, .stDownloadButton button {
+        background-color: #6366f1 !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+    .stButton button:hover, .stDownloadButton button:hover {
+        background-color: #4f46e5 !important;
     }
     
     div[data-testid="stMetricValue"] { color: #818cf8; font-size: 2rem; font-weight: 800; }
@@ -151,7 +161,6 @@ with right_col:
             st.error("⚠️ Please enter a student name on the left before running the analysis.")
         else:
             with st.spinner("Connecting to EduPredict AI Core..."):
-                # FIXED: Corrected the model name to gemini-1.5-flash
                 report_prompt = f"""
                 Act as a strict CBSE Data Analyst assisting a classroom teacher.
                 Student: {student_name} ({class_sec}, Roll: {roll_no}). Exam Phase: {exam_phase}
@@ -159,7 +168,7 @@ with right_col:
                 Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}, {lang_opt} {scores[lang_opt]:.1f}, {skill_opt} {scores[skill_opt]:.1f}.
                 Provide a structured, 4-bullet point report highlighting weaknesses and actionable strategies.
                 """
-                report_resp = client.models.generate_content(model="gemini-1.5-flash", contents=report_prompt)
+                report_resp = client.models.generate_content(model="gemini-3.8-flash", contents=report_prompt)
                 st.info("Report Output:")
                 st.write(report_resp.text)
 
@@ -181,8 +190,7 @@ with right_col:
                 st.markdown(prompt)
                 
             with st.chat_message("assistant"):
-                # FIXED: Corrected the model name to gemini-1.5-flash here too
-                chat_resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+                chat_resp = client.models.generate_content(model="gemini-3.8-flash", contents=prompt)
                 st.markdown(chat_resp.text)
                 
         st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
