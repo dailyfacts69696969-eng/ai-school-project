@@ -23,7 +23,8 @@ col_head1, col_head2 = st.columns([3, 1])
 with col_head1:
     st.markdown("### 🧠 EduPredict AI: Dynamic Student Performance Engine")
 with col_head2:
-    exam_phase = st.selectbox("Exam Phase", ["PT-1 (40 Marks)", "Half Yearly (80 Marks)", "PT-2 (40 Marks)", "Preboards (80 Marks)"])
+    exam_phase = st.selectbox("Exam Phase", ["PT-1", "Half Yearly", "PT-2", "Preboards"])
+    # Standard subjects max marks
     max_marks = 40 if "PT" in exam_phase else 80
 
 st.markdown("---")
@@ -52,16 +53,29 @@ with left_col:
     lang_opt = st.radio("Language Elective", ["Hindi", "Sanskrit", "French"], horizontal=True)
     skill_opt = st.radio("Skill Elective", ["Financial Literacy", "AI", "Computer"], horizontal=True)
     
-    sc_math = st.number_input("Mathematics", 0, max_marks, int(max_marks*0.75))
-    sc_sci = st.number_input("Science", 0, max_marks, int(max_marks*0.70))
-    sc_sst = st.number_input("Social Science", 0, max_marks, int(max_marks*0.70))
-    sc_eng = st.number_input("English", 0, max_marks, int(max_marks*0.80))
-    sc_lang = st.number_input(f"{lang_opt}", 0, max_marks, int(max_marks*0.85))
-    sc_skill = st.number_input(f"{skill_opt}", 0, max_marks, int(max_marks*0.90))
+    # --- DYNAMIC SKILL MARKS LOGIC ---
+    if skill_opt == "AI":
+        max_skill_marks = 35 if "PT" in exam_phase else 50
+    else:
+        max_skill_marks = max_marks # Defaults back to 40/80 for other skill subjects
+        
+    sc_math = st.number_input(f"Mathematics (out of {max_marks})", 0, max_marks, int(max_marks*0.75))
+    sc_sci = st.number_input(f"Science (out of {max_marks})", 0, max_marks, int(max_marks*0.70))
+    sc_sst = st.number_input(f"Social Science (out of {max_marks})", 0, max_marks, int(max_marks*0.70))
+    sc_eng = st.number_input(f"English (out of {max_marks})", 0, max_marks, int(max_marks*0.80))
+    sc_lang = st.number_input(f"{lang_opt} (out of {max_marks})", 0, max_marks, int(max_marks*0.85))
+    sc_skill = st.number_input(f"{skill_opt} (out of {max_skill_marks})", 0, max_skill_marks, int(max_skill_marks*0.90))
 
 with right_col:
-    # Calculate basic averages for the UI
-    scores = {"Maths": (sc_math/max_marks)*100, "Science": (sc_sci/max_marks)*100, "SST": (sc_sst/max_marks)*100, "English": (sc_eng/max_marks)*100, lang_opt: (sc_lang/max_marks)*100, skill_opt: (sc_skill/max_marks)*100}
+    # Calculate percentages for the UI charts (dividing by their specific max marks)
+    scores = {
+        "Maths": (sc_math/max_marks)*100, 
+        "Science": (sc_sci/max_marks)*100, 
+        "SST": (sc_sst/max_marks)*100, 
+        "English": (sc_eng/max_marks)*100, 
+        lang_opt: (sc_lang/max_marks)*100, 
+        skill_opt: (sc_skill/max_skill_marks)*100
+    }
     avg_score = sum(scores.values()) / len(scores)
     
     st.markdown("#### 📊 Real-Time Analytics")
@@ -79,7 +93,6 @@ with right_col:
     chart_col1, chart_col2 = st.columns(2)
     with chart_col1:
         st.markdown("**Factor Impact Breakdown**")
-        # Updated chart to reflect school factors
         factor_data = pd.DataFrame({"Factor": ["Attendance", "Assignments", "Participation", "Behavior"], "Impact": [15.0, 12.0, 5.0, 3.0]}).set_index("Factor")
         st.bar_chart(factor_data, color="#818cf8")
     with chart_col2:
