@@ -4,47 +4,31 @@ import pandas as pd
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-# --- ADVANCED CYBER-DARK THEME & CSS OVERHAULS ---
+# --- CYBER-DARK THEME & FLOATING WIDGET CSS ---
 st.set_page_config(page_title="EduPredict AI", layout="wide", initial_sidebar_state="collapsed")
 st.markdown("""
     <style>
-    /* Global Background & Font */
     .stApp { background-color: #030712; color: #f8fafc; font-family: 'Inter', sans-serif; }
     
-    /* Input Label Enhancements */
     .stTextInput label p, .stNumberInput label p, .stSlider label p, .stRadio label p, .stSelectbox label p {
         color: #94a3b8 !important; font-weight: 500 !important; font-size: 0.85rem !important; text-transform: uppercase; letter-spacing: 0.05em;
     }
     
-    /* Sleek Input Fields */
     .stTextInput input, .stNumberInput input, .stChatInput textarea {
         background-color: #0f172a !important; color: #ffffff !important; border: 1px solid #1e293b !important; border-radius: 8px !important;
     }
-    .stTextInput input:focus, .stNumberInput input:focus {
-        border-color: #6366f1 !important; box-shadow: 0 0 10px rgba(99, 102, 241, 0.2) !important;
-    }
     
-    /* Modern Neon Buttons */
     .stButton button, .stDownloadButton button {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
         color: #ffffff !important; border: none !important; border-radius: 8px !important;
         font-weight: 600 !important; letter-spacing: 0.025em; transition: all 0.3s ease;
         box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
-    .stButton button:hover, .stDownloadButton button:hover {
-        transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
-    }
     
-    /* Glassmorphism Containers */
     .glass-panel { 
         background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(30, 41, 59, 0.8); 
         padding: 24px; border-radius: 16px; backdrop-filter: blur(12px);
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    }
-    
-    /* Custom Table Styling */
-    dataframe, table {
-        background-color: #0f172a !important; border-radius: 8px !important; border: 1px solid #1e293b !important;
     }
     
     hr { border-color: #1e293b; margin: 2rem 0; }
@@ -201,21 +185,26 @@ with right_col:
                 st.write(resp.text)
                 st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- CHAT ASSISTANT PANEL ---
-    st.markdown("<br><h4>💬 Pedagogy AI Assistant</h4>", unsafe_allow_html=True)
-    chat_box = st.container(height=260)
+# --- FLOATING POPUP ASSISTANT WIDGET (BOTTOM RIGHT) ---
+# Using Streamlit popover component to create a clean clickable popup bubble
+with st.popover("💬 AI Teacher Assistant", help="Click to open popup assistant"):
+    st.markdown("#### ⚡ Quick Pedagogy AI")
+    st.caption("Ask for lesson plans, parent emails, or grading guidance.")
     
-    with chat_box:
+    # Chat container inside the popover
+    chat_container = st.container(height=320)
+    with chat_container:
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-    if prompt := st.chat_input("Ask for remediation strategies, lesson outlines, or parent email templates..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with chat_box:
+    if chat_prompt := st.chat_input("Type a prompt..."):
+        st.session_state.messages.append({"role": "user", "content": chat_prompt})
+        with chat_container:
             with st.chat_message("user"):
-                st.markdown(prompt)
+                st.markdown(chat_prompt)
             with st.chat_message("assistant"):
-                chat_resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+                chat_resp = client.models.generate_content(model="gemini-1.5-flash", contents=chat_prompt)
                 st.markdown(chat_resp.text)
         st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
+        st.rerun()
