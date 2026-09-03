@@ -166,7 +166,7 @@ with right_col:
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
-    # AI Report Generator Button with Safe Exception Catching
+    # AI Report Generator Button with Safe Exception Catching using gemini-2.5-flash
     if st.button("🚀 Run Deep AI Telemetry & Diagnostic Report", use_container_width=True):
         if not student_name:
             st.error("⚠️ Please specify a student name before triggering diagnostics.")
@@ -180,7 +180,7 @@ with right_col:
                     Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
                     Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
                     """
-                    resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+                    resp = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
                     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
                     st.markdown("#### 📑 Diagnostic Output Matrix")
                     st.write(resp.text)
@@ -206,7 +206,7 @@ with st.popover("💬 AI Teacher Assistant", help="Click to open popup assistant
                 st.markdown(chat_prompt)
             with st.chat_message("assistant"):
                 try:
-                    chat_resp = client.models.generate_content(model="gemini-1.5-flash", contents=chat_prompt)
+                    chat_resp = client.models.generate_content(model="gemini-2.5-flash", contents=chat_prompt)
                     st.markdown(chat_resp.text)
                     st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
                 except Exception as e:
