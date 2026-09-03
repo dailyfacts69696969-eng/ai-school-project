@@ -1,10 +1,11 @@
 import streamlit as st
 from google import genai
 import pandas as pd
+from PIL import Image
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-# --- CYBER-DARK THEME & FLOATING WIDGET CSS ---
+# --- CYBER-DARK THEME & CUSTOM CSS ---
 st.set_page_config(page_title="EduPredict AI", layout="wide", initial_sidebar_state="collapsed")
 st.markdown("""
     <style>
@@ -49,6 +50,45 @@ with col_head1:
 with col_head2:
     exam_phase = st.selectbox("Active Evaluation Phase", ["PT-1", "Half Yearly", "PT-2", "Preboards"])
     max_marks = 40 if "PT" in exam_phase else 80
+
+st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
+
+# --- NEW: DOCUMENT & REPORT TEMPLATE UPLOADER HUB ---
+with st.expander("📂 AI Document Ingestion & Report Card Template Hub", expanded=False):
+    up_col1, up_col2 = st.columns(2)
+    with up_col1:
+        st.markdown("#### 📄 Upload Student Paper / Test Sheet")
+        uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image/PDF)", type=["png", "jpg", "jpeg", "pdf"], key="paper_up")
+        if uploaded_paper and st.button("🤖 Auto-Extract Scores via Gemini"):
+            with st.spinner("Reading student paper details..."):
+                try:
+                    bytes_data = uploaded_paper.getvalue()
+                    prompt_paper = "Analyze this student document. Extract the Student Name, Roll Number, and estimate or locate scores for Math, Science, SST, and English as numbers. Format strictly as key-value pairs."
+                    resp_paper = client.models.generate_content(
+                        model="gemini-2.5-flash", 
+                        contents=[prompt_paper, {"mime_type": uploaded_paper.type, "data": bytes_data}]
+                    )
+                    st.success("Extraction Complete!")
+                    st.write(resp_paper.text)
+                except Exception as e:
+                    st.error(f"Extraction failed: {e}")
+
+    with up_col2:
+        st.markdown("#### 🖨️ Upload Report Card Template")
+        uploaded_template = st.file_uploader("Upload school report card layout (Image)", type=["png", "jpg", "jpeg"], key="template_up")
+        if uploaded_template and st.button("✨ Generate Custom Report Mapping"):
+            with st.spinner("Analyzing template structure..."):
+                try:
+                    img_bytes = uploaded_template.getvalue()
+                    prompt_tmpl = "Analyze this report card template layout image. Generate a layout instruction set on where student grades, attendance metrics, and remarks should be printed for customization."
+                    resp_tmpl = client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=[prompt_tmpl, {"mime_type": uploaded_template.type, "data": img_bytes}]
+                    )
+                    st.success("Template Mapped Successfully!")
+                    st.write(resp_tmpl.text)
+                except Exception as e:
+                    st.error(f"Mapping failed: {e}")
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
@@ -166,7 +206,7 @@ with right_col:
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
-    # AI Report Generator Button using gemini-3.6-flash
+    # AI Report Generator Button using gemini-2.5-flash
     if st.button("🚀 Run Deep AI Telemetry & Diagnostic Report", use_container_width=True):
         if not student_name:
             st.error("⚠️ Please specify a student name before triggering diagnostics.")
@@ -180,7 +220,7 @@ with right_col:
                     Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
                     Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
                     """
-                    resp = client.models.generate_content(model="gemini-3.6-flash", contents=prompt)
+                    resp = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
                     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
                     st.markdown("#### 📑 Diagnostic Output Matrix")
                     st.write(resp.text)
@@ -206,7 +246,7 @@ with st.popover("💬 AI Teacher Assistant", help="Click to open popup assistant
                 st.markdown(chat_prompt)
             with st.chat_message("assistant"):
                 try:
-                    chat_resp = client.models.generate_content(model="gemini-3.6-flash", contents=chat_prompt)
+                    chat_resp = client.models.generate_content(model="gemini-2.5-flash", contents=chat_prompt)
                     st.markdown(chat_resp.text)
                     st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
                 except Exception as e:
