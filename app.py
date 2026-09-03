@@ -53,12 +53,12 @@ with col_head2:
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
-# --- DOCUMENT & REPORT TEMPLATE UPLOADER HUB ---
-with st.expander("📂 AI Document Ingestion & Report Card Template Hub", expanded=False):
+# --- DOCUMENT & REPORT CARD GENERATOR HUB ---
+with st.expander("📂 AI Document Ingestion & Official Report Card Generator", expanded=False):
     up_col1, up_col2 = st.columns(2)
     with up_col1:
         st.markdown("#### 📄 Upload Student Paper / Test Sheet")
-        uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image/PDF)", type=["png", "jpg", "jpeg"], key="paper_up")
+        uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image)", type=["png", "jpg", "jpeg"], key="paper_up")
         if uploaded_paper and st.button("🤖 Auto-Extract Scores via Gemini"):
             with st.spinner("Reading student paper details..."):
                 try:
@@ -74,21 +74,27 @@ with st.expander("📂 AI Document Ingestion & Report Card Template Hub", expand
                     st.error(f"Extraction failed: {e}")
 
     with up_col2:
-        st.markdown("#### 🖨️ Upload Report Card Template")
-        uploaded_template = st.file_uploader("Upload school report card layout (Image)", type=["png", "jpg", "jpeg"], key="template_up")
-        if uploaded_template and st.button("✨ Generate Custom Report Mapping"):
-            with st.spinner("Analyzing template structure..."):
+        st.markdown("#### 🖨️ AI Official Report Card Generator")
+        st.caption("Generates a structured, printable formal report card across all terms.")
+        if st.button("✨ Generate Printable Report Card"):
+            with st.spinner("Compiling student telemetry into formal report card..."):
                 try:
-                    image_tmpl = Image.open(uploaded_template)
-                    prompt_tmpl = "Analyze this report card template layout image. Generate a layout instruction set on where student grades, attendance metrics, and remarks should be printed for customization."
-                    resp_tmpl = client.models.generate_content(
+                    prompt_rc = f"""
+                    Act as a CBSE School Registrar. Generate a formal, beautifully structured student report card in Markdown format for:
+                    - Student Name: [Current Student]
+                    - Exam Phase: {exam_phase}
+                    - Include placeholders for student details, term breakdown, attendance, co-scholastic grades, teacher remarks, and signature lines.
+                    """
+                    resp_rc = client.models.generate_content(
                         model="gemini-3.6-flash",
-                        contents=[prompt_tmpl, image_tmpl]
+                        contents=prompt_rc
                     )
-                    st.success("Template Mapped Successfully!")
-                    st.write(resp_tmpl.text)
+                    st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
+                    st.markdown("### 🏫 Official School Report Card")
+                    st.markdown(resp_rc.text)
+                    st.markdown("</div>", unsafe_allow_html=True)
                 except Exception as e:
-                    st.error(f"Mapping failed: {e}")
+                    st.error(f"Report card generation failed: {e}")
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
