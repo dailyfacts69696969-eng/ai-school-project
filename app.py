@@ -62,11 +62,10 @@ with st.expander("📂 AI Document Ingestion & Report Card Template Hub", expand
         if uploaded_paper and st.button("🤖 Auto-Extract Scores via Gemini"):
             with st.spinner("Reading student paper details..."):
                 try:
-                    # FIXED: Pass image using Pillow (PIL) which the Google GenAI SDK natively accepts
                     image_input = Image.open(uploaded_paper)
                     prompt_paper = "Analyze this student document image. Extract the Student Name, Roll Number, and estimate or locate scores for Math, Science, SST, and English as numbers. Format strictly as clear text."
                     resp_paper = client.models.generate_content(
-                        model="gemini-2.5-flash", 
+                        model="gemini-3.6-flash", 
                         contents=[prompt_paper, image_input]
                     )
                     st.success("Extraction Complete!")
@@ -83,7 +82,7 @@ with st.expander("📂 AI Document Ingestion & Report Card Template Hub", expand
                     image_tmpl = Image.open(uploaded_template)
                     prompt_tmpl = "Analyze this report card template layout image. Generate a layout instruction set on where student grades, attendance metrics, and remarks should be printed for customization."
                     resp_tmpl = client.models.generate_content(
-                        model="gemini-2.5-flash",
+                        model="gemini-3.6-flash",
                         contents=[prompt_tmpl, image_tmpl]
                     )
                     st.success("Template Mapped Successfully!")
@@ -209,7 +208,7 @@ with right_col:
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
-    # AI Report Generator Button using gemini-2.5-flash
+    # AI Report Generator Button using gemini-3.6-flash
     if st.button("🚀 Run Deep AI Telemetry & Diagnostic Report", use_container_width=True):
         if not student_name:
             st.error("⚠️ Please specify a student name before triggering diagnostics.")
@@ -223,7 +222,7 @@ with right_col:
                     Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
                     Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
                     """
-                    resp = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+                    resp = client.models.generate_content(model="gemini-3.6-flash", contents=prompt)
                     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
                     st.markdown("#### 📑 Diagnostic Output Matrix")
                     st.write(resp.text)
@@ -249,7 +248,7 @@ with st.popover("💬 AI Teacher Assistant", help="Click to open popup assistant
                 st.markdown(chat_prompt)
             with st.chat_message("assistant"):
                 try:
-                    chat_resp = client.models.generate_content(model="gemini-2.5-flash", contents=chat_prompt)
+                    chat_resp = client.models.generate_content(model="gemini-3.6-flash", contents=chat_prompt)
                     st.markdown(chat_resp.text)
                     st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
                 except Exception as e:
