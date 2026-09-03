@@ -11,12 +11,20 @@ st.markdown("""
     <style>
     .stApp { background-color: #020617; color: #f1f5f9; }
     
-    /* FIX FOR INVISIBLE TEXT: Explicitly set background and white text */
+    /* FIX FOR INVISIBLE LABELS: Make text above input boxes white */
+    .stTextInput label p, .stNumberInput label p, .stSlider label p, .stRadio label p, .stSelectbox label p {
+        color: #f8fafc !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Input box styling */
     .stTextInput input, .stNumberInput input, .stChatInput textarea {
         background-color: #1e293b !important;
         color: #ffffff !important;
         border: 1px solid #334155 !important;
     }
+    
+    /* Button styling */
     .stButton button, .stDownloadButton button {
         background-color: #6366f1 !important;
         color: #ffffff !important;
@@ -33,9 +41,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Initialize chat history in the background memory
+# Initialize background memory for Chat AND the Class Portfolio
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "Hi Teacher! I am your AI assistant. Need help writing a parent email or generating a quick lesson plan?"}]
+
+if "class_portfolio" not in st.session_state:
+    st.session_state.class_portfolio = pd.DataFrame()
 
 # --- HEADER SECTION ---
 col_head1, col_head2 = st.columns([3, 1])
@@ -76,7 +87,7 @@ with left_col:
     if skill_opt == "AI":
         max_skill_marks = 35 if "PT" in exam_phase else 50
     else:
-        max_skill_marks = max_marks # Defaults back to 40/80 for other skill subjects
+        max_skill_marks = max_marks 
         
     sc_math = st.number_input(f"Mathematics (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.75)), step=0.5)
     sc_sci = st.number_input(f"Science (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
@@ -86,7 +97,7 @@ with left_col:
     sc_skill = st.number_input(f"{skill_opt} (out of {max_skill_marks})", 0.0, float(max_skill_marks), float(int(max_skill_marks*0.90)), step=0.5)
 
 with right_col:
-    # Calculate percentages for the UI charts (dividing by their specific max marks)
+    # Calculate percentages for the UI charts
     scores = {
         "Maths": (sc_math/max_marks)*100, 
         "Science": (sc_sci/max_marks)*100, 
@@ -108,7 +119,6 @@ with right_col:
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Charts
     chart_col1, chart_col2 = st.columns(2)
     with chart_col1:
         st.markdown("**Factor Impact Breakdown**")
@@ -121,39 +131,40 @@ with right_col:
 
     st.markdown("---")
     
-    # --- DOWNLOAD & MAIN REPORT BUTTONS ---
-    btn_col1, btn_col2 = st.columns(2)
+    # --- MULTI-STUDENT PORTFOLIO & AI REPORT ---
+    btn_col1, btn_col2, btn_col3 = st.columns(3)
     
     with btn_col1:
-        # Bundle all the current inputs into a Pandas DataFrame
-        student_record = pd.DataFrame({
-            "Name": [student_name if student_name else "Unknown"],
-            "Roll No": [roll_no],
-            "Class": [class_sec],
-            "Exam": [exam_phase],
-            "Attendance (%)": [attendance],
-            "Assignments (%)": [assignments],
-            "Participation (1-10)": [participation],
-            "Behavior (1-10)": [behavior],
-            "Math": [sc_math],
-            "Science": [sc_sci],
-            "SST": [sc_sst],
-            "English": [sc_eng],
-            lang_opt: [sc_lang],
-            skill_opt: [sc_skill],
-            "Final Average (%)": [round(avg_score, 1)]
-        })
-        # Convert it to a CSV file format in the background
-        csv_file = student_record.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label=f"💾 Download {student_name if student_name else 'Student'} Record (CSV)",
-            data=csv_file,
-            file_name=f"{student_name if student_name else 'Student'}_{exam_phase.split()[0]}_Record.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
+        # Button to add current student to the master list
+        if st.button("➕ Add Student to Portfolio", use_container_width=True):
+            if not student_name:
+                st.error("Please enter a Name!")
+            else:
+                new_student = pd.DataFrame({
+                    "Name": [student_name], "Roll No": [roll_no], "Class": [class_sec], "Exam": [exam_phase],
+                    "Attendance (%)": [attendance], "Assignments (%)": [assignments], 
+                    "Math": [sc_math], "Science": [sc_sci], "SST": [sc_sst], "English": [sc_eng],
+                    lang_opt: [sc_lang], skill_opt: [sc_skill], "Average (%)": [round(avg_score, 1)]
+                })
+                # Append to the background memory
+                st.session_state.class_portfolio = pd.concat([st.session_state.class_portfolio, new_student], ignore_index=True)
+                st.success(f"Added! ({len(st.session_state.class_portfolio)} students in portfolio)")
 
     with btn_col2:
+        # Download the entire portfolio of all saved students
+        if not st.session_state.class_portfolio.empty:
+            csv_file = st.session_state.class_portfolio.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label=f"📥 Download Portfolio CSV ({len(st.session_state.class_portfolio)})",
+                data=csv_file,
+                file_name=f"Class_Portfolio_{exam_phase.split()[0]}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+        else:
+            st.button("📥 Download Portfolio (Empty)", disabled=True, use_container_width=True)
+
+    with btn_col3:
         run_analysis = st.button("🚀 Run Deep AI Report", use_container_width=True)
 
     if run_analysis:
@@ -161,6 +172,7 @@ with right_col:
             st.error("⚠️ Please enter a student name on the left before running the analysis.")
         else:
             with st.spinner("Connecting to EduPredict AI Core..."):
+                # FIXED: The exact, working model name for the AI!
                 report_prompt = f"""
                 Act as a strict CBSE Data Analyst assisting a classroom teacher.
                 Student: {student_name} ({class_sec}, Roll: {roll_no}). Exam Phase: {exam_phase}
@@ -168,7 +180,7 @@ with right_col:
                 Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}, {lang_opt} {scores[lang_opt]:.1f}, {skill_opt} {scores[skill_opt]:.1f}.
                 Provide a structured, 4-bullet point report highlighting weaknesses and actionable strategies.
                 """
-                report_resp = client.models.generate_content(model="gemini-3.8-flash", contents=report_prompt)
+                report_resp = client.models.generate_content(model="gemini-1.5-flash", contents=report_prompt)
                 st.info("Report Output:")
                 st.write(report_resp.text)
 
@@ -190,7 +202,8 @@ with right_col:
                 st.markdown(prompt)
                 
             with st.chat_message("assistant"):
-                chat_resp = client.models.generate_content(model="gemini-3.8-flash", contents=prompt)
+                # FIXED: The exact, working model name for the Chat!
+                chat_resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
                 st.markdown(chat_resp.text)
                 
         st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
