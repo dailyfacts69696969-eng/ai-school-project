@@ -53,48 +53,23 @@ with col_head2:
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
-# --- DOCUMENT & REPORT CARD GENERATOR HUB ---
-with st.expander("📂 AI Document Ingestion & Official Report Card Generator", expanded=False):
-    up_col1, up_col2 = st.columns(2)
-    with up_col1:
-        st.markdown("#### 📄 Upload Student Paper / Test Sheet")
-        uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image)", type=["png", "jpg", "jpeg"], key="paper_up")
-        if uploaded_paper and st.button("🤖 Auto-Extract Scores via Gemini"):
-            with st.spinner("Reading student paper details..."):
-                try:
-                    image_input = Image.open(uploaded_paper)
-                    prompt_paper = "Analyze this student document image. Extract the Student Name, Roll Number, and estimate or locate scores for Math, Science, SST, and English as numbers. Format strictly as clear text."
-                    resp_paper = client.models.generate_content(
-                        model="gemini-3.6-flash", 
-                        contents=[prompt_paper, image_input]
-                    )
-                    st.success("Extraction Complete!")
-                    st.write(resp_paper.text)
-                except Exception as e:
-                    st.error(f"Extraction failed: {e}")
-
-    with up_col2:
-        st.markdown("#### 🖨️ AI Official Report Card Generator")
-        st.caption("Generates a structured, printable formal report card across all terms.")
-        if st.button("✨ Generate Printable Report Card"):
-            with st.spinner("Compiling student telemetry into formal report card..."):
-                try:
-                    prompt_rc = f"""
-                    Act as a CBSE School Registrar. Generate a formal, beautifully structured student report card in Markdown format for:
-                    - Student Name: [Current Student]
-                    - Exam Phase: {exam_phase}
-                    - Include placeholders for student details, term breakdown, attendance, co-scholastic grades, teacher remarks, and signature lines.
-                    """
-                    resp_rc = client.models.generate_content(
-                        model="gemini-3.6-flash",
-                        contents=prompt_rc
-                    )
-                    st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-                    st.markdown("### 🏫 Official School Report Card")
-                    st.markdown(resp_rc.text)
-                    st.markdown("</div>", unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"Report card generation failed: {e}")
+# --- AI DOCUMENT INGESTION HUB ---
+with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=False):
+    st.markdown("#### 📄 Upload Student Paper / Test Sheet for Auto-Extraction")
+    uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image)", type=["png", "jpg", "jpeg"], key="paper_up")
+    if uploaded_paper and st.button("🤖 Auto-Extract Details & Scores via Gemini"):
+        with st.spinner("Reading student paper details..."):
+            try:
+                image_input = Image.open(uploaded_paper)
+                prompt_paper = "Analyze this student document image. Extract the Student Name, Roll Number, and estimate or locate scores for Math, Science, SST, and English as numbers. Format strictly as clear text."
+                resp_paper = client.models.generate_content(
+                    model="gemini-3.6-flash", 
+                    contents=[prompt_paper, image_input]
+                )
+                st.success("Extraction Complete!")
+                st.write(resp_paper.text)
+            except Exception as e:
+                st.error(f"Extraction failed: {e}")
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
