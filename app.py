@@ -166,32 +166,33 @@ with right_col:
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
-    # AI Report Generator Button
+    # AI Report Generator Button with Safe Exception Catching
     if st.button("🚀 Run Deep AI Telemetry & Diagnostic Report", use_container_width=True):
         if not student_name:
             st.error("⚠️ Please specify a student name before triggering diagnostics.")
         else:
             with st.spinner("Synthesizing behavioral metrics with Gemini core..."):
-                prompt = f"""
-                Act as an elite CBSE Class 10 academic coordinator.
-                Student: {student_name} ({class_sec}, Roll: {roll_no}). Phase: {exam_phase}
-                Telemetry: {attendance}% attendance, {assignments}% assignments.
-                Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
-                Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
-                """
-                resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
-                st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-                st.markdown("#### 📑 Diagnostic Output Matrix")
-                st.write(resp.text)
-                st.markdown("</div>", unsafe_allow_html=True)
+                try:
+                    prompt = f"""
+                    Act as an elite CBSE Class 10 academic coordinator.
+                    Student: {student_name} ({class_sec}, Roll: {roll_no}). Phase: {exam_phase}
+                    Telemetry: {attendance}% attendance, {assignments}% assignments.
+                    Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
+                    Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
+                    """
+                    resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+                    st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
+                    st.markdown("#### 📑 Diagnostic Output Matrix")
+                    st.write(resp.text)
+                    st.markdown("</div>", unsafe_allow_html=True)
+                except Exception as e:
+                    st.error(f"❌ AI Generation Failed: {e}")
 
 # --- FLOATING POPUP ASSISTANT WIDGET (BOTTOM RIGHT) ---
-# Using Streamlit popover component to create a clean clickable popup bubble
 with st.popover("💬 AI Teacher Assistant", help="Click to open popup assistant"):
     st.markdown("#### ⚡ Quick Pedagogy AI")
     st.caption("Ask for lesson plans, parent emails, or grading guidance.")
     
-    # Chat container inside the popover
     chat_container = st.container(height=320)
     with chat_container:
         for message in st.session_state.messages:
@@ -204,7 +205,10 @@ with st.popover("💬 AI Teacher Assistant", help="Click to open popup assistant
             with st.chat_message("user"):
                 st.markdown(chat_prompt)
             with st.chat_message("assistant"):
-                chat_resp = client.models.generate_content(model="gemini-1.5-flash", contents=chat_prompt)
-                st.markdown(chat_resp.text)
-        st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
+                try:
+                    chat_resp = client.models.generate_content(model="gemini-1.5-flash", contents=chat_prompt)
+                    st.markdown(chat_resp.text)
+                    st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
+                except Exception as e:
+                    st.error(f"Chat Error: {e}")
         st.rerun()
