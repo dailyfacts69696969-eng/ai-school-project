@@ -6,7 +6,7 @@ from PIL import Image
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 # --- CYBER-DARK THEME & CUSTOM CSS ---
-st.set_page_config(page_title="EduPredict AI", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="EduPredict AI", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <style>
     .stApp { background-color: #030712; color: #f8fafc; font-family: 'Inter', sans-serif; }
@@ -42,6 +42,31 @@ if "messages" not in st.session_state:
 
 if "class_portfolio" not in st.session_state:
     st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
+
+# --- SIDEBAR: AI TEACHER ASSISTANT PANEL ---
+with st.sidebar:
+    st.markdown("### 💬 AI Teacher Assistant")
+    st.caption("Ask for lesson plans, parent emails, or grading guidance.")
+    
+    chat_container = st.container(height=450)
+    with chat_container:
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+    if chat_prompt := st.chat_input("Type a prompt..."):
+        st.session_state.messages.append({"role": "user", "content": chat_prompt})
+        with chat_container:
+            with st.chat_message("user"):
+                st.markdown(chat_prompt)
+            with st.chat_message("assistant"):
+                try:
+                    chat_resp = client.models.generate_content(model="gemini-3.6-flash", contents=chat_prompt)
+                    st.markdown(chat_resp.text)
+                    st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
+                except Exception as e:
+                    st.error(f"Chat Error: {e}")
+        st.rerun()
 
 # --- HEADER BAR ---
 col_head1, col_head2 = st.columns([3, 1])
@@ -210,28 +235,3 @@ with right_col:
                     st.markdown("</div>", unsafe_allow_html=True)
                 except Exception as e:
                     st.error(f"❌ AI Generation Failed: {e}")
-
-# --- FLOATING POPUP ASSISTANT WIDGET (BOTTOM RIGHT) ---
-with st.popover("💬 AI Teacher Assistant", help="Click to open popup assistant"):
-    st.markdown("#### ⚡ Quick Pedagogy AI")
-    st.caption("Ask for lesson plans, parent emails, or grading guidance.")
-    
-    chat_container = st.container(height=320)
-    with chat_container:
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-
-    if chat_prompt := st.chat_input("Type a prompt..."):
-        st.session_state.messages.append({"role": "user", "content": chat_prompt})
-        with chat_container:
-            with st.chat_message("user"):
-                st.markdown(chat_prompt)
-            with st.chat_message("assistant"):
-                try:
-                    chat_resp = client.models.generate_content(model="gemini-3.6-flash", contents=chat_prompt)
-                    st.markdown(chat_resp.text)
-                    st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
-                except Exception as e:
-                    st.error(f"Chat Error: {e}")
-        st.rerun()
