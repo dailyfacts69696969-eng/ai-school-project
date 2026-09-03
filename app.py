@@ -41,7 +41,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "Hello Teacher! I am your AI assistant. How can I help optimize your classroom today?"}]
 
 if "class_portfolio" not in st.session_state:
-    st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
+    st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
 
 # --- HEADER BAR ---
 col_head1, col_head2 = st.columns([3, 1])
@@ -53,20 +53,21 @@ with col_head2:
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
-# --- NEW: DOCUMENT & REPORT TEMPLATE UPLOADER HUB ---
+# --- DOCUMENT & REPORT TEMPLATE UPLOADER HUB ---
 with st.expander("📂 AI Document Ingestion & Report Card Template Hub", expanded=False):
     up_col1, up_col2 = st.columns(2)
     with up_col1:
         st.markdown("#### 📄 Upload Student Paper / Test Sheet")
-        uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image/PDF)", type=["png", "jpg", "jpeg", "pdf"], key="paper_up")
+        uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image/PDF)", type=["png", "jpg", "jpeg"], key="paper_up")
         if uploaded_paper and st.button("🤖 Auto-Extract Scores via Gemini"):
             with st.spinner("Reading student paper details..."):
                 try:
-                    bytes_data = uploaded_paper.getvalue()
-                    prompt_paper = "Analyze this student document. Extract the Student Name, Roll Number, and estimate or locate scores for Math, Science, SST, and English as numbers. Format strictly as key-value pairs."
+                    # FIXED: Pass image using Pillow (PIL) which the Google GenAI SDK natively accepts
+                    image_input = Image.open(uploaded_paper)
+                    prompt_paper = "Analyze this student document image. Extract the Student Name, Roll Number, and estimate or locate scores for Math, Science, SST, and English as numbers. Format strictly as clear text."
                     resp_paper = client.models.generate_content(
                         model="gemini-2.5-flash", 
-                        contents=[prompt_paper, {"mime_type": uploaded_paper.type, "data": bytes_data}]
+                        contents=[prompt_paper, image_input]
                     )
                     st.success("Extraction Complete!")
                     st.write(resp_paper.text)
@@ -79,11 +80,11 @@ with st.expander("📂 AI Document Ingestion & Report Card Template Hub", expand
         if uploaded_template and st.button("✨ Generate Custom Report Mapping"):
             with st.spinner("Analyzing template structure..."):
                 try:
-                    img_bytes = uploaded_template.getvalue()
+                    image_tmpl = Image.open(uploaded_template)
                     prompt_tmpl = "Analyze this report card template layout image. Generate a layout instruction set on where student grades, attendance metrics, and remarks should be printed for customization."
                     resp_tmpl = client.models.generate_content(
                         model="gemini-2.5-flash",
-                        contents=[prompt_tmpl, {"mime_type": uploaded_template.type, "data": img_bytes}]
+                        contents=[prompt_tmpl, image_tmpl]
                     )
                     st.success("Template Mapped Successfully!")
                     st.write(resp_tmpl.text)
@@ -104,6 +105,8 @@ with left_col:
         roll_no = st.text_input("Roll No.", placeholder="04")
     with r_col2:
         class_sec = st.text_input("Class/Sec", placeholder="10-B")
+    
+    parent_phone = st.text_input("Parent Phone Number", placeholder="+91 98765 43210")
     st.markdown("</div><br>", unsafe_allow_html=True)
 
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
@@ -183,8 +186,8 @@ with right_col:
                 st.error("⚠️ Enter a valid student name.")
             else:
                 new_student = pd.DataFrame({
-                    "Name": [student_name], "Roll No": [roll_no], "Class": [class_sec], "Exam": [exam_phase],
-                    "Attendance (%)": [attendance], "Assignments (%)": [assignments], "Average (%)": [round(avg_score, 1)]
+                    "Name": [student_name], "Roll No": [roll_no], "Class": [class_sec], "Parent Phone": [parent_phone], 
+                    "Exam": [exam_phase], "Attendance (%)": [attendance], "Assignments (%)": [assignments], "Average (%)": [round(avg_score, 1)]
                 })
                 st.session_state.class_portfolio = pd.concat([st.session_state.class_portfolio, new_student], ignore_index=True)
                 st.rerun()
@@ -201,7 +204,7 @@ with right_col:
 
     with btn_col3:
         if st.button("🗑️ Reset Database", use_container_width=True):
-            st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
+            st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
             st.rerun()
 
     st.markdown("<hr>", unsafe_allow_html=True)
