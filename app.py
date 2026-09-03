@@ -4,59 +4,94 @@ import pandas as pd
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
+# --- ADVANCED CYBER-DARK THEME & CSS OVERHAULS ---
 st.set_page_config(page_title="EduPredict AI", layout="wide", initial_sidebar_state="collapsed")
 st.markdown("""
     <style>
-    .stApp { background-color: #020617; color: #f1f5f9; }
+    /* Global Background & Font */
+    .stApp { background-color: #030712; color: #f8fafc; font-family: 'Inter', sans-serif; }
+    
+    /* Input Label Enhancements */
     .stTextInput label p, .stNumberInput label p, .stSlider label p, .stRadio label p, .stSelectbox label p {
-        color: #f8fafc !important; font-weight: 600 !important;
+        color: #94a3b8 !important; font-weight: 500 !important; font-size: 0.85rem !important; text-transform: uppercase; letter-spacing: 0.05em;
     }
+    
+    /* Sleek Input Fields */
     .stTextInput input, .stNumberInput input, .stChatInput textarea {
-        background-color: #1e293b !important; color: #ffffff !important; border: 1px solid #334155 !important;
+        background-color: #0f172a !important; color: #ffffff !important; border: 1px solid #1e293b !important; border-radius: 8px !important;
     }
+    .stTextInput input:focus, .stNumberInput input:focus {
+        border-color: #6366f1 !important; box-shadow: 0 0 10px rgba(99, 102, 241, 0.2) !important;
+    }
+    
+    /* Modern Neon Buttons */
     .stButton button, .stDownloadButton button {
-        background-color: #6366f1 !important; color: #ffffff !important; border: none !important;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+        color: #ffffff !important; border: none !important; border-radius: 8px !important;
+        font-weight: 600 !important; letter-spacing: 0.025em; transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
-    .glass-panel { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(30, 41, 59, 0.8); padding: 20px; border-radius: 15px; }
-    hr { border-color: #1e293b; }
+    .stButton button:hover, .stDownloadButton button:hover {
+        transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    }
+    
+    /* Glassmorphism Containers */
+    .glass-panel { 
+        background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(30, 41, 59, 0.8); 
+        padding: 24px; border-radius: 16px; backdrop-filter: blur(12px);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    
+    /* Custom Table Styling */
+    dataframe, table {
+        background-color: #0f172a !important; border-radius: 8px !important; border: 1px solid #1e293b !important;
+    }
+    
+    hr { border-color: #1e293b; margin: 2rem 0; }
     </style>
 """, unsafe_allow_html=True)
 
+# Session States
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hi Teacher! I am your AI assistant. Ready to manage your class roster?"}]
+    st.session_state.messages = [{"role": "assistant", "content": "Hello Teacher! I am your AI assistant. How can I help optimize your classroom today?"}]
 
 if "class_portfolio" not in st.session_state:
-    st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Exam", "Average (%)"])
+    st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
 
+# --- HEADER BAR ---
 col_head1, col_head2 = st.columns([3, 1])
 with col_head1:
-    st.markdown("### 🧠 EduPredict AI: Class Roster & Portfolio Engine")
+    st.markdown("### ⚡ EduPredict AI <span style='color:#6366f1; font-size: 1rem;'>// Enterprise Classroom Intelligence</span>", unsafe_allow_html=True)
 with col_head2:
-    exam_phase = st.selectbox("Exam Phase", ["PT-1", "Half Yearly", "PT-2", "Preboards"])
+    exam_phase = st.selectbox("Active Evaluation Phase", ["PT-1", "Half Yearly", "PT-2", "Preboards"])
     max_marks = 40 if "PT" in exam_phase else 80
 
-st.markdown("---")
+st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
+# --- SPLIT SCREEN LAYOUT ---
 left_col, right_col = st.columns([4, 8], gap="large")
 
 with left_col:
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("#### 👤 Student Identity Profile")
-    student_name = st.text_input("Full Name", placeholder="e.g., Rahul Sharma")
+    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>👤 Student Identity Credentials</h4>", unsafe_allow_html=True)
+    student_name = st.text_input("Full Name", placeholder="e.g., Aarav Sharma")
     r_col1, r_col2 = st.columns(2)
     with r_col1:
-        roll_no = st.text_input("Roll No.", placeholder="12")
+        roll_no = st.text_input("Roll No.", placeholder="04")
     with r_col2:
-        class_sec = st.text_input("Class/Sec", placeholder="10-A")
+        class_sec = st.text_input("Class/Sec", placeholder="10-B")
     st.markdown("</div><br>", unsafe_allow_html=True)
 
-    st.markdown("#### 🏫 Academic Telemetry")
-    attendance = st.slider("Attendance Rate (%)", 0, 100, 85)
-    assignments = st.slider("Assignment Completion (%)", 0, 100, 90)
-    participation = st.slider("Class Participation (1-10)", 1, 10, 7)
-    behavior = st.slider("Classroom Behavior (1-10)", 1, 10, 8)
+    st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>🏫 Behavioral Telemetry</h4>", unsafe_allow_html=True)
+    attendance = st.slider("Attendance Rate (%)", 0, 100, 88)
+    assignments = st.slider("Assignment Completion (%)", 0, 100, 92)
+    participation = st.slider("Class Participation Score", 1, 10, 8)
+    behavior = st.slider("Classroom Conduct Index", 1, 10, 9)
+    st.markdown("</div><br>", unsafe_allow_html=True)
 
-    st.markdown("#### 📚 Subject Scores")
+    st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>📚 Subject Score Matrix</h4>", unsafe_allow_html=True)
     lang_opt = st.radio("Language Elective", ["Hindi", "Sanskrit", "French"], horizontal=True)
     skill_opt = st.radio("Skill Elective", ["Financial Literacy", "AI", "Computer"], horizontal=True)
     
@@ -65,12 +100,13 @@ with left_col:
     else:
         max_skill_marks = max_marks 
         
-    sc_math = st.number_input(f"Mathematics (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.75)), step=0.5)
-    sc_sci = st.number_input(f"Science (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
-    sc_sst = st.number_input(f"Social Science (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
-    sc_eng = st.number_input(f"English (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.80)), step=0.5)
-    sc_lang = st.number_input(f"{lang_opt} (out of {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.85)), step=0.5)
-    sc_skill = st.number_input(f"{skill_opt} (out of {max_skill_marks})", 0.0, float(max_skill_marks), float(int(max_skill_marks*0.90)), step=0.5)
+    sc_math = st.number_input(f"Mathematics (Max: {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.75)), step=0.5)
+    sc_sci = st.number_input(f"Science (Max: {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
+    sc_sst = st.number_input(f"Social Science (Max: {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
+    sc_eng = st.number_input(f"English (Max: {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.80)), step=0.5)
+    sc_lang = st.number_input(f"{lang_opt} (Max: {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.85)), step=0.5)
+    sc_skill = st.number_input(f"{skill_opt} (Max: {max_skill_marks})", 0.0, float(max_skill_marks), float(int(max_skill_marks*0.90)), step=0.5)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with right_col:
     scores = {
@@ -80,27 +116,51 @@ with right_col:
     }
     avg_score = sum(scores.values()) / len(scores)
     
-    st.markdown("#### 📊 Live Class Roster Preview")
+    # KPI Grid
+    kpi1, kpi2, kpi3 = st.columns(3)
+    with kpi1:
+        st.markdown(f"""
+            <div class='glass-panel' style='text-align: center; padding: 15px;'>
+                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Predicted Average</p>
+                <h3 style='color: #818cf8; font-size: 1.8rem; margin: 0;'>{avg_score:.1f}%</h3>
+            </div>
+        """, unsafe_allow_html=True)
+    with kpi2:
+        risk_color = "#10b981" if avg_score > 75 and attendance > 75 else "#ef4444"
+        risk_text = "LOW RISK 🟢" if avg_score > 75 and attendance > 75 else "HIGH RISK 🔴"
+        st.markdown(f"""
+            <div class='glass-panel' style='text-align: center; padding: 15px;'>
+                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Risk Profile</p>
+                <h3 style='color: {risk_color}; font-size: 1.2rem; margin-top: 5px;'>{risk_text}</h3>
+            </div>
+        """, unsafe_allow_html=True)
+    with kpi3:
+        st.markdown(f"""
+            <div class='glass-panel' style='text-align: center; padding: 15px;'>
+                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Gain Potential</p>
+                <h3 style='color: #10b981; font-size: 1.8rem; margin: 0;'>+6.2%</h3>
+            </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    # Show the table of added students dynamically on screen
+    # Roster Preview Section
+    st.markdown("#### 📊 Live Master Class Roster Database")
     if not st.session_state.class_portfolio.empty:
         st.dataframe(st.session_state.class_portfolio, use_container_width=True)
     else:
-        st.info("No students added to the portfolio yet. Fill out the form on the left and click 'Add Student'.")
+        st.info("💡 Portfolio database is currently empty. Input student parameters on the left and click 'Add Student'.")
 
-    st.markdown("---")
-    
+    # Action Buttons Bar
     btn_col1, btn_col2, btn_col3 = st.columns(3)
-    
     with btn_col1:
-        if st.button("➕ Add Student to Portfolio", use_container_width=True):
+        if st.button("➕ Add Student to Roster", use_container_width=True):
             if not student_name:
-                st.error("Please enter a Student Name!")
+                st.error("⚠️ Enter a valid student name.")
             else:
                 new_student = pd.DataFrame({
                     "Name": [student_name], "Roll No": [roll_no], "Class": [class_sec], "Exam": [exam_phase],
-                    "Attendance (%)": [attendance], "Assignments (%)": [assignments], 
-                    "Average (%)": [round(avg_score, 1)]
+                    "Attendance (%)": [attendance], "Assignments (%)": [assignments], "Average (%)": [round(avg_score, 1)]
                 })
                 st.session_state.class_portfolio = pd.concat([st.session_state.class_portfolio, new_student], ignore_index=True)
                 st.rerun()
@@ -109,23 +169,53 @@ with right_col:
         if not st.session_state.class_portfolio.empty:
             csv_file = st.session_state.class_portfolio.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Download Master CSV", data=csv_file,
-                file_name=f"Class_Portfolio_{exam_phase}.csv", mime="text/csv", use_container_width=True
+                label="📥 Export Master CSV", data=csv_file,
+                file_name=f"CBSE_Class_Portfolio_{exam_phase}.csv", mime="text/csv", use_container_width=True
             )
         else:
-            st.button("📥 Download Master CSV", disabled=True, use_container_width=True)
+            st.button("📥 Export Master CSV", disabled=True, use_container_width=True)
 
     with btn_col3:
-        if st.button("🗑️ Clear Roster", use_container_width=True):
-            st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Exam", "Average (%)"])
+        if st.button("🗑️ Reset Database", use_container_width=True):
+            st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
             st.rerun()
 
-    st.markdown("---")
-    if st.button("🚀 Run Deep AI Report for Current Student", use_container_width=True):
+    st.markdown("<hr>", unsafe_allow_html=True)
+    
+    # AI Report Generator Button
+    if st.button("🚀 Run Deep AI Telemetry & Diagnostic Report", use_container_width=True):
         if not student_name:
-            st.error("⚠️ Please enter a student name on the left.")
+            st.error("⚠️ Please specify a student name before triggering diagnostics.")
         else:
-            with st.spinner("Analyzing telemetry..."):
-                prompt = f"Act as a CBSE Data Analyst. Student: {student_name}, Exam: {exam_phase}, Attendance: {attendance}%. Average Score: {avg_score:.1f}%. Provide 3 bullet points of feedback."
+            with st.spinner("Synthesizing behavioral metrics with Gemini core..."):
+                prompt = f"""
+                Act as an elite CBSE Class 10 academic coordinator.
+                Student: {student_name} ({class_sec}, Roll: {roll_no}). Phase: {exam_phase}
+                Telemetry: {attendance}% attendance, {assignments}% assignments.
+                Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
+                Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
+                """
                 resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+                st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
+                st.markdown("#### 📑 Diagnostic Output Matrix")
                 st.write(resp.text)
+                st.markdown("</div>", unsafe_allow_html=True)
+
+    # --- CHAT ASSISTANT PANEL ---
+    st.markdown("<br><h4>💬 Pedagogy AI Assistant</h4>", unsafe_allow_html=True)
+    chat_box = st.container(height=260)
+    
+    with chat_box:
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+    if prompt := st.chat_input("Ask for remediation strategies, lesson outlines, or parent email templates..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with chat_box:
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            with st.chat_message("assistant"):
+                chat_resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+                st.markdown(chat_resp.text)
+        st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
