@@ -63,6 +63,19 @@ st.markdown("""
         border-color: rgba(99, 102, 241, 0.4);
         box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.15);
     }
+
+    .nav-guide {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(15, 23, 42, 0.8));
+        border: 1px dashed #6366f1;
+        padding: 12px 20px;
+        border-radius: 12px;
+        color: #cbd5e1;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
     
     hr { border-color: #1e293b; margin: 2rem 0; }
     </style>
@@ -118,6 +131,13 @@ with col_head2:
     max_marks = 40 if "PT" in exam_phase else 80
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
+
+# Visual Navigation Banner to locate the hidden AI sidebar easily
+st.markdown("""
+    <div class="nav-guide">
+        <span>💡 <b>Navigation Tip:</b> Looking for the <b>AI Teacher Assistant Chat</b>? Click the <b>&gt;&gt;</b> arrow or sidebar toggle in the <b>top-left corner</b> of your screen to expand it.</span>
+    </div>
+""", unsafe_allow_html=True)
 
 # --- AI DOCUMENT INGESTION HUB ---
 with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=False):
