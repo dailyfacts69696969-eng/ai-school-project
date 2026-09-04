@@ -9,7 +9,7 @@ import json
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-# --- CYBER-DARK THEME & ANIMATED CSS ---
+# --- CYBER-DARK THEME & BUTTER-SMOOTH ANIMATED CSS ---
 st.set_page_config(page_title="EduPredict AI | NCS Goa", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <style>
@@ -159,7 +159,7 @@ if not st.session_state.app_started:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🚀 Launch Standard 10th Intelligence Hub", use_container_width=True):
             st.session_state.app_started = True
-            st.rer()
+            st.rerun()
     st.stop()
 
 # --- SIDEBAR: AI TEACHER ASSISTANT PANEL ---
@@ -197,7 +197,7 @@ with col_head2:
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
-# Unified Single Box with Prominent Navigation Notice & Slow-Rotating Pro Tips Ticker
+# Unified Single Box with Smooth Blur-Fade Rotating Navigation & Pro Tips Ticker
 st.markdown("""
     <div class="nav-guide">
         <div class="tips-container">
