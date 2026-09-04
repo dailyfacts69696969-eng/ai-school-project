@@ -383,23 +383,55 @@ EduPredict AI Automated System
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
-    if st.button("🚀 Run Deep AI Telemetry & Diagnostic Report", use_container_width=True):
-        if not student_name:
-            st.error("⚠️ Please specify a student name before triggering diagnostics.")
-        else:
-            with st.spinner("Synthesizing behavioral metrics with Gemini core..."):
-                try:
-                    prompt = f"""
-                    Act as an elite CBSE Class 10 academic coordinator.
-                    Student: {student_name} ({class_sec}, Roll: {roll_no}). Phase: {exam_phase}
-                    Telemetry: {attendance}% attendance, {assignments}% assignments.
-                    Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
-                    Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
-                    """
-                    resp = client.models.generate_content(model="gemini-3.5-flash", contents=prompt)
-                    st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-                    st.markdown("#### 📑 Diagnostic Output Matrix")
-                    st.write(resp.text)
-                    st.markdown("</div>", unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"❌ AI Generation Failed: {e}")
+    action_col1, action_col2 = st.columns(2)
+    
+    with action_col1:
+        if st.button("🚀 Run Deep AI Telemetry & Diagnostic Report", use_container_width=True):
+            if not student_name:
+                st.error("⚠️ Please specify a student name before triggering diagnostics.")
+            else:
+                with st.spinner("Synthesizing behavioral metrics with Gemini core..."):
+                    try:
+                        prompt = f"""
+                        Act as an elite CBSE Class 10 academic coordinator.
+                        Student: {student_name} ({class_sec}, Roll: {roll_no}). Phase: {exam_phase}
+                        Telemetry: {attendance}% attendance, {assignments}% assignments.
+                        Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
+                        Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
+                        """
+                        resp = client.models.generate_content(model="gemini-3.5-flash", contents=prompt)
+                        st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
+                        st.markdown("#### 📑 Diagnostic Output Matrix")
+                        st.write(resp.text)
+                        st.markdown("</div>", unsafe_allow_html=True)
+                    except Exception as e:
+                        st.error(f"❌ AI Generation Failed: {e}")
+
+    with action_col2:
+        if st.button("🎙️ Generate Parent-Teacher Conference Script", use_container_width=True):
+            if not student_name:
+                st.error("⚠️ Please specify a student name before generating conference scripts.")
+            else:
+                with st.spinner("Drafting personalized meeting agenda and conversation script with Gemini..."):
+                    try:
+                        script_prompt = f"""
+                        Act as an expert CBSE Class 10 educator preparing for a Parent-Teacher Conference.
+                        Student: {student_name} ({class_sec}, Roll: {roll_no}). Phase: {exam_phase}
+                        Telemetry: Attendance {attendance}%, Assignments {assignments}%.
+                        Scores (%): Math {scores['Maths']:.1f}, Science {scores['Science']:.1f}, SST {scores['SST']:.1f}, English {scores['English']:.1f}, {lang_opt} {scores[lang_opt]:.1f}, {skill_opt} {scores[skill_opt]:.1f}.
+                        Overall Average: {avg_score:.1f}%
+                        
+                        Generate a professional, personalized meeting agenda and a conversation script for the teacher to use when sitting down with the parents. 
+                        Highlight:
+                        1. Meeting Agenda Structure
+                        2. Key Student Strengths
+                        3. Specific Areas for Improvement
+                        4. Step-by-Step Conversation Script & Talking Points
+                        """
+                        script_resp = client.models.generate_content(model="gemini-3.5-flash", contents=script_prompt)
+                        st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
+                        st.markdown("#### 🎙️ Parent-Teacher Conference Script & Agenda")
+                        st.markdown(script_resp.text)
+                        st.markdown("</div>", unsafe_allow_html=True)
+                    except Exception as e:
+                        st.error(f"❌ Script Generation Failed: {e}")
