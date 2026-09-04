@@ -24,32 +24,35 @@ st.markdown("""
         100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
     }
 
-    /* Slower, smooth text rotation animation for the unified tips ticker */
+    /* Smooth, premium blur-fade rotation animation for the unified single-box ticker */
     @keyframes rotateTips {
-        0% { opacity: 0; transform: translateY(8px); }
-        5% { opacity: 1; transform: translateY(0); }
-        22% { opacity: 1; transform: translateY(0); }
-        28% { opacity: 0; transform: translateY(-8px); }
-        100% { opacity: 0; transform: translateY(-8px); }
+        0% { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+        6% { opacity: 1; transform: translateY(0); filter: blur(0px); }
+        18% { opacity: 1; transform: translateY(0); filter: blur(0px); }
+        24% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
+        100% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
     }
 
     .tip-item {
         position: absolute;
         width: 100%;
         opacity: 0;
-        animation: rotateTips 32s infinite;
+        animation: rotateTips 35s infinite;
     }
     
     .tip-item:nth-child(1) { animation-delay: 0s; }
-    .tip-item:nth-child(2) { animation-delay: 8s; }
-    .tip-item:nth-child(3) { animation-delay: 16s; }
-    .tip-item:nth-child(4) { animation-delay: 24s; }
+    .tip-item:nth-child(2) { animation-delay: 7s; }
+    .tip-item:nth-child(3) { animation-delay: 14s; }
+    .tip-item:nth-child(4) { animation-delay: 21s; }
+    .tip-item:nth-child(5) { animation-delay: 28s; }
 
     .tips-container {
         position: relative;
-        height: 24px;
+        height: 26px;
         overflow: hidden;
         width: 100%;
+        display: flex;
+        align-items: center;
     }
 
     .stApp { background-color: #030712; color: #f8fafc; font-family: 'Inter', sans-serif; animation: fadeIn 0.8s ease-out; }
@@ -158,13 +161,11 @@ with col_head2:
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
-# Unified Single Box with Prominent Navigation Notice & Slow-Rotating Pro Tips Ticker
+# Unified Single Box with Smooth Blur-Fade Rotating Navigation & Pro Tips Ticker
 st.markdown("""
     <div class="nav-guide">
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(99, 102, 241, 0.25); padding-bottom: 8px; margin-bottom: 8px;">
-            <span>🧭 <b>Navigation Notice:</b> Click the <b>>></b> arrow in the top-left corner to access the hidden AI Teacher Assistant chat.</span>
-        </div>
         <div class="tips-container">
+            <div class="tip-item">🧭 <b>Navigation Notice:</b> Click the <b>>></b> arrow in the top-left corner to access the hidden AI Teacher Assistant chat.</div>
             <div class="tip-item">⚡ <b>Pro Tip:</b> Upload clear test sheets into the Extraction Hub for instant score and roll number auto-fill.</div>
             <div class="tip-item">🛡️ <b>Pro Tip:</b> Keep an eye on the Risk Profile badge to instantly spot students needing urgent intervention.</div>
             <div class="tip-item">📊 <b>Pro Tip:</b> Use the Batch Class CSV Upload to analyze entire classroom datasets and identify outliers in seconds.</div>
