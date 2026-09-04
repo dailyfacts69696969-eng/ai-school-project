@@ -9,6 +9,17 @@ import json
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
+# --- DEBUG TOOL (DELETE THIS AFTER YOU FIND THE RIGHT MODEL NAME) ---
+st.error("🔍 DEBUG: AVAILABLE MODELS ON YOUR SERVER")
+st.caption("Look at the names below. Find the one with 'flash' (e.g., 'gemini-1.5-flash-latest' or 'gemini-1.5-flash-8b'). Copy that exact name, replace 'gemini-1.5-flash' in the code below, and then delete this red box section!")
+try:
+    for m in client.models.list():
+        if "flash" in m.name:
+            st.code(m.name)
+except Exception as e:
+    st.write(f"Error finding models: {e}")
+# ---------------------------------------------------------------------
+
 # --- CYBER-DARK THEME & CUSTOM CSS ---
 st.set_page_config(page_title="EduPredict AI", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
@@ -73,7 +84,7 @@ with st.sidebar:
                 st.markdown(chat_prompt)
             with st.chat_message("assistant"):
                 try:
-                    # UPDATED: Using gemini-1.5-flash with ultra-fast streaming
+                    # REPLACE THIS 'gemini-1.5-flash' WITH THE NAME FROM THE RED BOX
                     chat_resp = client.models.generate_content_stream(model="gemini-1.5-flash", contents=chat_prompt)
                     full_text = st.write_stream(chunk.text for chunk in chat_resp)
                     st.session_state.messages.append({"role": "assistant", "content": full_text})
@@ -103,7 +114,7 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
                 You MUST return the data STRICTLY as a valid JSON object (no markdown formatting, no backticks, just the raw JSON) with exactly these keys: 
                 {"name": "...", "roll_no": "...", "math": 0.0, "science": 0.0, "sst": 0.0, "english": 0.0}"""
                 
-                # UPDATED: Using gemini-1.5-flash for massively higher API limits
+                # REPLACE THIS 'gemini-1.5-flash' WITH THE NAME FROM THE RED BOX
                 resp_paper = client.models.generate_content(
                     model="gemini-1.5-flash", 
                     contents=[prompt_paper, image_input]
@@ -324,7 +335,7 @@ EduPredict AI Automated System
                     Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
                     Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
                     """
-                    # UPDATED: Using gemini-1.5-flash for massively higher API limits
+                    # REPLACE THIS 'gemini-1.5-flash' WITH THE NAME FROM THE RED BOX
                     resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
                     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
                     st.markdown("#### 📑 Diagnostic Output Matrix")
