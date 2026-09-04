@@ -234,7 +234,7 @@ with right_col:
     with kpi1:
         st.markdown(f"""
             <div class='glass-panel' style='text-align: center; padding: 15px;'>
-                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Avg</p>
+                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>AVG</p>
                 <h3 style='color: #818cf8; font-size: 1.8rem; margin: 0;'>{avg_score:.1f}%</h3>
             </div>
         """, unsafe_allow_html=True)
