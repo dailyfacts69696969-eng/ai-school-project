@@ -24,6 +24,34 @@ st.markdown("""
         100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
     }
 
+    /* Smooth text rotation animation for tips ticker */
+    @keyframes rotateTips {
+        0% { opacity: 0; transform: translateY(8px); }
+        10% { opacity: 1; transform: translateY(0); }
+        30% { opacity: 1; transform: translateY(0); }
+        40% { opacity: 0; transform: translateY(-8px); }
+        100% { opacity: 0; transform: translateY(-8px); }
+    }
+
+    .tip-item {
+        position: absolute;
+        width: 100%;
+        opacity: 0;
+        animation: rotateTips 16s infinite;
+    }
+    
+    .tip-item:nth-child(1) { animation-delay: 0s; }
+    .tip-item:nth-child(2) { animation-delay: 4s; }
+    .tip-item:nth-child(3) { animation-delay: 8s; }
+    .tip-item:nth-child(4) { animation-delay: 12s; }
+
+    .tips-container {
+        position: relative;
+        height: 24px;
+        overflow: hidden;
+        width: 100%;
+    }
+
     .stApp { background-color: #030712; color: #f8fafc; font-family: 'Inter', sans-serif; animation: fadeIn 0.8s ease-out; }
     
     .stTextInput label p, .stNumberInput label p, .stSlider label p, .stRadio label p, .stSelectbox label p {
@@ -67,14 +95,14 @@ st.markdown("""
     .nav-guide {
         background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(15, 23, 42, 0.8));
         border: 1px dashed #6366f1;
-        padding: 12px 20px;
+        padding: 14px 20px;
         border-radius: 12px;
         color: #cbd5e1;
         font-size: 0.9rem;
         margin-bottom: 1.5rem;
         display: flex;
-        align-items: center;
-        gap: 10px;
+        flex-direction: column;
+        gap: 6px;
     }
     
     hr { border-color: #1e293b; margin: 2rem 0; }
@@ -132,10 +160,20 @@ with col_head2:
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
-# Visual Navigation Banner to locate the hidden AI sidebar easily
+# Navigation Banner with Animated Rotating Tips Ticker
 st.markdown("""
     <div class="nav-guide">
-        <span>💡 <b>Navigation Tip:</b> Looking for the <b>AI Teacher Assistant Chat</b>? Click the <b>&gt;&gt;</b> arrow or sidebar toggle in the <b>top-left corner</b> of your screen to expand it.</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span>💡 <b>Navigation Tip:</b> Click the <b>&gt;&gt;</b> arrow in the <b>top-left corner</b> to access the hidden AI Teacher Assistant chat.</span>
+        </div>
+        <div style="border-top: 1px solid rgba(99, 102, 241, 0.2); padding-top: 6px; margin-top: 2px;">
+            <div class="tips-container">
+                <div class="tip-item">⚡ <b>Pro Tip:</b> Upload clear test sheets for instant score & roll number extraction.</div>
+                <div class="tip-item">🛡️ <b>Pro Tip:</b> Monitor the Risk Profile badge to quickly spot students needing urgent intervention.</div>
+                <div class="tip-item">📊 <b>Pro Tip:</b> Use Batch Class CSV Upload to analyze entire classroom performance instantly.</div>
+                <div class="tip-item">🎙️ <b>Pro Tip:</b> Generate customized Parent-Teacher Conference scripts with a single click.</div>
+            </div>
+        </div>
     </div>
 """, unsafe_allow_html=True)
 
