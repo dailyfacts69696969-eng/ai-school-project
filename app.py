@@ -9,7 +9,7 @@ import json
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-# --- APPLE-INSPIRED DESIGN SYSTEM & FLUID ANIMATIONS ---
+# --- APPLE-INSPIRED DESIGN SYSTEM & CURSOR FOLLOWER ---
 st.set_page_config(page_title="EduPredict AI | NCS Goa", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <style>
@@ -32,6 +32,22 @@ st.markdown("""
         18% { opacity: 1; transform: translateY(0); filter: blur(0px); }
         24% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
         100% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
+    }
+
+    /* Cursor-following navy/blue gradient spotlight */
+    #cursor-glow {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 450px;
+        height: 450px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(10, 132, 255, 0.14) 0%, rgba(11, 27, 61, 0.08) 50%, rgba(0, 0, 0, 0) 75%);
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        z-index: 99999;
+        mix-blend-mode: screen;
+        transition: transform 0.05s ease-out;
     }
 
     .tip-item {
@@ -127,6 +143,16 @@ st.markdown("""
     
     hr { border-color: rgba(255, 255, 255, 0.08); margin: 2rem 0; }
     </style>
+
+    <!-- Cursor follower DOM element & script -->
+    <div id="cursor-glow"></div>
+    <script>
+    const cursorGlow = document.getElementById('cursor-glow');
+    document.addEventListener('mousemove', (e) => {
+        cursorGlow.style.left = e.clientX + 'px';
+        cursorGlow.style.top = e.clientY + 'px';
+    });
+    </script>
 """, unsafe_allow_html=True)
 
 # --- SESSION STATES ---
