@@ -118,30 +118,43 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
                 elif raw_text.startswith("```"): raw_text = raw_text[3:-3]
                 
                 st.session_state.raw_extracted = json.loads(raw_text)
-                st.success("✅ Extraction Complete! View details below.")
+                st.success("✅ Extraction Complete! View clean preview below.")
             except Exception as e:
                 st.error(f"Extraction or Parsing failed: {e}")
 
-    # Display extracted details visually before auto-filling
+    # CLEANER UI FOR PREVIEW (No ugly raw JSON boxes)
     if st.session_state.raw_extracted:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
         st.markdown("#### 📋 Extracted Document Preview Matrix", unsafe_allow_html=True)
-        st.json(st.session_state.raw_extracted)
         
+        ext = st.session_state.raw_extracted
+        p_name = ext.get("name") or "Not Detected"
+        p_roll = ext.get("roll_no") or "N/A"
+        p_math = ext.get("math") if ext.get("math") is not None else 0.0
+        p_sci = ext.get("science") if ext.get("science") is not None else 0.0
+        p_sst = ext.get("sst") if ext.get("sst") is not None else 0.0
+        p_eng = ext.get("english") if ext.get("english") is not None else 0.0
+
+        prev_col1, prev_col2, prev_col3 = st.columns(3)
+        with prev_col1:
+            st.metric("Detected Student", p_name)
+            st.metric("Roll Number", p_roll)
+        with prev_col2:
+            st.metric("Mathematics", p_math)
+            st.metric("Science", p_sci)
+        with prev_col3:
+            st.metric("Social Science", p_sst)
+            st.metric("English", p_eng)
+
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("✨ Apply Extracted Data to Form (Auto-Fill)", use_container_width=True):
-            ext = st.session_state.raw_extracted
-            st.session_state.ext_name = ext.get("name", "") or ""
-            st.session_state.ext_roll = str(ext.get("roll_no") or "")
-            
-            m_val = ext.get("math")
-            st.session_state.ext_math = float(m_val) if m_val is not None else 0.0
-            s_val = ext.get("science")
-            st.session_state.ext_sci = float(s_val) if s_val is not None else 0.0
-            sst_val = ext.get("sst")
-            st.session_state.ext_sst = float(sst_val) if sst_val is not None else 0.0
-            e_val = ext.get("english")
-            st.session_state.ext_eng = float(e_val) if e_val is not None else 0.0
+            st.session_state.ext_name = p_name if p_name != "Not Detected" else ""
+            st.session_state.ext_roll = p_roll if p_roll != "N/A" else ""
+            st.session_state.ext_math = float(p_math)
+            st.session_state.ext_sci = float(p_sci)
+            st.session_state.ext_sst = float(p_sst)
+            st.session_state.ext_eng = float(p_eng)
             
             st.success("✅ Form successfully auto-filled with extracted data!")
             st.rerun()
