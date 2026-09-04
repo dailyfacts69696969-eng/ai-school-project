@@ -47,13 +47,14 @@ if "messages" not in st.session_state:
 if "class_portfolio" not in st.session_state:
     st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Parent Email", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
 
-# Extracted Data States (Used to auto-populate UI)
+# Extracted Data States
 if "ext_name" not in st.session_state: st.session_state.ext_name = ""
 if "ext_roll" not in st.session_state: st.session_state.ext_roll = ""
 if "ext_math" not in st.session_state: st.session_state.ext_math = None
 if "ext_sci" not in st.session_state: st.session_state.ext_sci = None
 if "ext_sst" not in st.session_state: st.session_state.ext_sst = None
 if "ext_eng" not in st.session_state: st.session_state.ext_eng = None
+if "raw_extracted" not in st.session_state: st.session_state.raw_extracted = None
 
 # --- SIDEBAR: AI TEACHER ASSISTANT PANEL ---
 with st.sidebar:
@@ -92,10 +93,15 @@ st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
 # --- AI DOCUMENT INGESTION HUB ---
 with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=False):
-    st.markdown("#### 📄 Upload Student Paper / Test Sheet for Auto-Extraction")
+    st.markdown("#### 📄 Upload Student Paper / Test Sheet for Extraction")
     uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image)", type=["png", "jpg", "jpeg"], key="paper_up")
-    if uploaded_paper and st.button("🤖 Auto-Extract Details & Auto-Fill Fields"):
-        with st.spinner("Extracting parameters and synchronizing with dashboard UI..."):
+    
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        extract_clicked = st.button("🔍 Extract & Inspect Details", use_container_width=True)
+        
+    if uploaded_paper and extract_clicked:
+        with st.spinner("Analyzing document with Gemini core..."):
             try:
                 image_input = Image.open(uploaded_paper)
                 prompt_paper = """Analyze this student document image. Extract the Student Name, Roll Number, and scores for Math, Science, SST, and English. 
@@ -111,28 +117,35 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
                 if raw_text.startswith("```json"): raw_text = raw_text[7:-3]
                 elif raw_text.startswith("```"): raw_text = raw_text[3:-3]
                 
-                extracted_data = json.loads(raw_text)
-                
-                st.session_state.ext_name = extracted_data.get("name", "") or ""
-                st.session_state.ext_roll = str(extracted_data.get("roll_no") or "")
-                
-                # Safe float parsing to prevent NoneType TypeError
-                m_val = extracted_data.get("math")
-                st.session_state.ext_math = float(m_val) if m_val is not None else 0.0
-                
-                s_val = extracted_data.get("science")
-                st.session_state.ext_sci = float(s_val) if s_val is not None else 0.0
-                
-                sst_val = extracted_data.get("sst")
-                st.session_state.ext_sst = float(sst_val) if sst_val is not None else 0.0
-                
-                e_val = extracted_data.get("english")
-                st.session_state.ext_eng = float(e_val) if e_val is not None else 0.0
-                
-                st.success("✅ Extraction Complete! Dashboard has been auto-populated.")
-                st.rerun()
+                st.session_state.raw_extracted = json.loads(raw_text)
+                st.success("✅ Extraction Complete! View details below.")
             except Exception as e:
                 st.error(f"Extraction or Parsing failed: {e}")
+
+    # Display extracted details visually before auto-filling
+    if st.session_state.raw_extracted:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
+        st.markdown("#### 📋 Extracted Document Preview Matrix", unsafe_allow_html=True)
+        st.json(st.session_state.raw_extracted)
+        
+        if st.button("✨ Apply Extracted Data to Form (Auto-Fill)", use_container_width=True):
+            ext = st.session_state.raw_extracted
+            st.session_state.ext_name = ext.get("name", "") or ""
+            st.session_state.ext_roll = str(ext.get("roll_no") or "")
+            
+            m_val = ext.get("math")
+            st.session_state.ext_math = float(m_val) if m_val is not None else 0.0
+            s_val = ext.get("science")
+            st.session_state.ext_sci = float(s_val) if s_val is not None else 0.0
+            sst_val = ext.get("sst")
+            st.session_state.ext_sst = float(sst_val) if sst_val is not None else 0.0
+            e_val = ext.get("english")
+            st.session_state.ext_eng = float(e_val) if e_val is not None else 0.0
+            
+            st.success("✅ Form successfully auto-filled with extracted data!")
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
@@ -172,7 +185,6 @@ with left_col:
     if skill_opt == "AI": max_skill_marks = 35 if "PT" in exam_phase else 50
     else: max_skill_marks = max_marks 
     
-    # Safe value calculations with bounds-clamping and None protection
     raw_math = st.session_state.ext_math if st.session_state.ext_math is not None else float(int(max_marks*0.75))
     val_math = min(float(raw_math), float(max_marks))
 
