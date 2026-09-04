@@ -73,7 +73,7 @@ with st.sidebar:
                 st.markdown(chat_prompt)
             with st.chat_message("assistant"):
                 try:
-                    chat_resp = client.models.generate_content_stream(model="gemini-3.8-flash", contents=chat_prompt)
+                    chat_resp = client.models.generate_content_stream(model="gemini-3.5-flash", contents=chat_prompt)
                     full_text = st.write_stream(chunk.text for chunk in chat_resp)
                     st.session_state.messages.append({"role": "assistant", "content": full_text})
                 except Exception as e:
@@ -103,7 +103,7 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
                 {"name": "...", "roll_no": "...", "math": 0.0, "science": 0.0, "sst": 0.0, "english": 0.0}"""
                 
                 resp_paper = client.models.generate_content(
-                    model="gemini-3.8-flash", 
+                    model="gemini-3.5-flash", 
                     contents=[prompt_paper, image_input]
                 )
                 
@@ -322,7 +322,7 @@ EduPredict AI Automated System
                     Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
                     Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
                     """
-                    resp = client.models.generate_content(model="gemini-3.8-flash", contents=prompt)
+                    resp = client.models.generate_content(model="gemini-3.5-flash", contents=prompt)
                     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
                     st.markdown("#### 📑 Diagnostic Output Matrix")
                     st.write(resp.text)
