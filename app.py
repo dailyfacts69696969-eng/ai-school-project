@@ -226,7 +226,6 @@ with right_col:
     avg_score = sum(scores.values()) / len(scores)
     
     # CALCULATED GAIN POTENTIAL FORMULA
-    # Factors in unexploited score headroom and assignment gaps dynamically
     headroom = max(0.0, 100.0 - avg_score)
     assignment_gap = max(0.0, 100.0 - assignments)
     gain_potential = round(min(25.0, max(1.2, (headroom * 0.22) + (assignment_gap * 0.08))), 1)
@@ -235,7 +234,7 @@ with right_col:
     with kpi1:
         st.markdown(f"""
             <div class='glass-panel' style='text-align: center; padding: 15px;'>
-                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Predicted Average</p>
+                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Avg</p>
                 <h3 style='color: #818cf8; font-size: 1.8rem; margin: 0;'>{avg_score:.1f}%</h3>
             </div>
         """, unsafe_allow_html=True)
