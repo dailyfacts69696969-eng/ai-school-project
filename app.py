@@ -2,6 +2,9 @@ import streamlit as st
 from google import genai
 import pandas as pd
 from PIL import Image
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
@@ -41,7 +44,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "Hello Teacher! I am your AI assistant. How can I help optimize your classroom today?"}]
 
 if "class_portfolio" not in st.session_state:
-    st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
+    st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Parent Email", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
 
 # --- SIDEBAR: AI TEACHER ASSISTANT PANEL ---
 with st.sidebar:
@@ -111,7 +114,11 @@ with left_col:
     with r_col2:
         class_sec = st.text_input("Class/Sec", placeholder="10-B")
     
-    parent_phone = st.text_input("Parent Phone Number", placeholder="+91 98765 43210")
+    p_col1, p_col2 = st.columns(2)
+    with p_col1:
+        parent_phone = st.text_input("Parent Phone Number", placeholder="+91 98765 43210")
+    with p_col2:
+        parent_email = st.text_input("Parent Email Address", placeholder="parent@example.com")
     st.markdown("</div><br>", unsafe_allow_html=True)
 
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
@@ -175,6 +182,65 @@ with right_col:
         """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- AUTOMATED EMAIL ALERT SYSTEM ---
+    if avg_score < 50:
+        st.error("⚠️ Critical Alert: Student's overall average is below 50%. Immediate intervention required.")
+        if st.button("📧 Dispatch Automated Email Alert to Parent", use_container_width=True):
+            if not parent_email:
+                st.warning("Please enter a valid Parent Email Address on the left panel.")
+            else:
+                with st.spinner("Dispatching secure email alert..."):
+                    try:
+                        # Fetch credentials from Streamlit Secrets
+                        sender_email = st.secrets.get("EMAIL_SENDER", "")
+                        sender_password = st.secrets.get("EMAIL_PASSWORD", "")
+                        
+                        if not sender_email or not sender_password:
+                            st.error("❌ Email credentials missing in Streamlit Secrets. Please configure EMAIL_SENDER and EMAIL_PASSWORD.")
+                        else:
+                            # Construct the Email
+                            msg = MIMEMultipart()
+                            msg['From'] = sender_email
+                            msg['To'] = parent_email
+                            msg['Subject'] = f"Academic Performance Alert: {student_name} - {exam_phase}"
+                            
+                            body = f"""Dear Parent,
+
+This is an automated academic alert from the EduPredict AI system.
+
+We are writing to inform you regarding {student_name}'s performance in the recent {exam_phase} evaluations. Currently, their overall average is {avg_score:.1f}%, which requires immediate attention.
+
+Subject Breakdown (Percentage):
+- Mathematics: {scores['Maths']:.1f}%
+- Science: {scores['Science']:.1f}%
+- Social Science: {scores['SST']:.1f}%
+- English: {scores['English']:.1f}%
+- {lang_opt}: {scores[lang_opt]:.1f}%
+- {skill_opt}: {scores[skill_opt]:.1f}%
+
+Attendance: {attendance}%
+
+Please contact the school academic coordinator at your earliest convenience to schedule a parent-teacher meeting. We would like to discuss remediation strategies to support {student_name}'s academic growth.
+
+Sincerely,
+EduPredict AI Automated System
+"""
+                            msg.attach(MIMEText(body, 'plain'))
+                            
+                            # Send Email via Gmail SMTP
+                            server = smtplib.SMTP('smtp.gmail.com', 587)
+                            server.starttls()
+                            server.login(sender_email, sender_password)
+                            text = msg.as_string()
+                            server.sendmail(sender_email, parent_email, text)
+                            server.quit()
+                            
+                            st.success(f"✅ Alert successfully dispatched to {parent_email}")
+                    except Exception as e:
+                        st.error(f"Failed to send email: {e}")
+
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Roster Preview Section
     st.markdown("#### 📊 Live Master Class Roster Database")
@@ -191,7 +257,7 @@ with right_col:
                 st.error("⚠️ Enter a valid student name.")
             else:
                 new_student = pd.DataFrame({
-                    "Name": [student_name], "Roll No": [roll_no], "Class": [class_sec], "Parent Phone": [parent_phone], 
+                    "Name": [student_name], "Roll No": [roll_no], "Class": [class_sec], "Parent Phone": [parent_phone], "Parent Email": [parent_email],
                     "Exam": [exam_phase], "Attendance (%)": [attendance], "Assignments (%)": [assignments], "Average (%)": [round(avg_score, 1)]
                 })
                 st.session_state.class_portfolio = pd.concat([st.session_state.class_portfolio, new_student], ignore_index=True)
@@ -209,7 +275,7 @@ with right_col:
 
     with btn_col3:
         if st.button("🗑️ Reset Database", use_container_width=True):
-            st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
+            st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Parent Email", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
             st.rerun()
 
     st.markdown("<hr>", unsafe_allow_html=True)
