@@ -73,9 +73,10 @@ with st.sidebar:
                 st.markdown(chat_prompt)
             with st.chat_message("assistant"):
                 try:
-                    chat_resp = client.models.generate_content(model="gemini-3.6-flash", contents=chat_prompt)
-                    st.markdown(chat_resp.text)
-                    st.session_state.messages.append({"role": "assistant", "content": chat_resp.text})
+                    # UPDATED: Using gemini-1.5-flash with ultra-fast streaming
+                    chat_resp = client.models.generate_content_stream(model="gemini-1.5-flash", contents=chat_prompt)
+                    full_text = st.write_stream(chunk.text for chunk in chat_resp)
+                    st.session_state.messages.append({"role": "assistant", "content": full_text})
                 except Exception as e:
                     st.error(f"Chat Error: {e}")
         st.rerun()
@@ -98,24 +99,22 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
         with st.spinner("Extracting parameters and synchronizing with dashboard UI..."):
             try:
                 image_input = Image.open(uploaded_paper)
-                # Force Gemini to output STRICT JSON so Python can inject it into the UI
                 prompt_paper = """Analyze this student document image. Extract the Student Name, Roll Number, and scores for Math, Science, SST, and English. 
                 You MUST return the data STRICTLY as a valid JSON object (no markdown formatting, no backticks, just the raw JSON) with exactly these keys: 
                 {"name": "...", "roll_no": "...", "math": 0.0, "science": 0.0, "sst": 0.0, "english": 0.0}"""
                 
+                # UPDATED: Using gemini-1.5-flash for massively higher API limits
                 resp_paper = client.models.generate_content(
-                    model="gemini-3.6-flash", 
+                    model="gemini-1.5-flash", 
                     contents=[prompt_paper, image_input]
                 )
                 
-                # Clean up response and parse JSON
                 raw_text = resp_paper.text.strip()
                 if raw_text.startswith("```json"): raw_text = raw_text[7:-3]
                 elif raw_text.startswith("```"): raw_text = raw_text[3:-3]
                 
                 extracted_data = json.loads(raw_text)
                 
-                # Inject directly into Streamlit Session State
                 st.session_state.ext_name = extracted_data.get("name", "")
                 st.session_state.ext_roll = str(extracted_data.get("roll_no", ""))
                 st.session_state.ext_math = float(extracted_data.get("math", 0.0))
@@ -124,7 +123,7 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
                 st.session_state.ext_eng = float(extracted_data.get("english", 0.0))
                 
                 st.success("✅ Extraction Complete! Dashboard has been auto-populated.")
-                st.rerun() # Forces the UI to refresh immediately with the new data
+                st.rerun()
             except Exception as e:
                 st.error(f"Extraction or Parsing failed: {e}")
 
@@ -136,7 +135,6 @@ left_col, right_col = st.columns([4, 8], gap="large")
 with left_col:
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
     st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>👤 Student Identity Credentials</h4>", unsafe_allow_html=True)
-    # Connected directly to session state
     student_name = st.text_input("Full Name", value=st.session_state.ext_name, placeholder="e.g., Aarav Sharma")
     r_col1, r_col2 = st.columns(2)
     with r_col1:
@@ -167,7 +165,6 @@ with left_col:
     if skill_opt == "AI": max_skill_marks = 35 if "PT" in exam_phase else 50
     else: max_skill_marks = max_marks 
     
-    # Check if AI extracted data exists, otherwise use standard defaults
     val_math = st.session_state.ext_math if st.session_state.ext_math is not None else float(int(max_marks*0.75))
     val_sci = st.session_state.ext_sci if st.session_state.ext_sci is not None else float(int(max_marks*0.70))
     val_sst = st.session_state.ext_sst if st.session_state.ext_sst is not None else float(int(max_marks*0.70))
@@ -189,7 +186,6 @@ with right_col:
     }
     avg_score = sum(scores.values()) / len(scores)
     
-    # KPI Grid
     kpi1, kpi2, kpi3 = st.columns(3)
     with kpi1:
         st.markdown(f"""
@@ -217,7 +213,6 @@ with right_col:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- VISUAL ANALYTICS BAR CHART ---
     st.markdown("#### 📈 Subject Performance Breakdown")
     chart_data = pd.DataFrame({
         "Subject": list(scores.keys()),
@@ -225,7 +220,6 @@ with right_col:
     })
     st.bar_chart(chart_data, x="Subject", y="Score (%)", color="#6366f1", height=250)
 
-    # --- AUTOMATED EMAIL ALERT SYSTEM ---
     if avg_score < 50:
         st.error("⚠️ Critical Alert: Student's overall average is below 50%. Immediate intervention required.")
         if st.button("📧 Dispatch Automated Email Alert to Parent", use_container_width=True):
@@ -281,14 +275,12 @@ EduPredict AI Automated System
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Roster Preview Section
     st.markdown("#### 📊 Live Master Class Roster Database")
     if not st.session_state.class_portfolio.empty:
         st.dataframe(st.session_state.class_portfolio, use_container_width=True)
     else:
         st.info("💡 Portfolio database is currently empty. Input student parameters on the left and click 'Add Student'.")
 
-    # Action Buttons Bar
     btn_col1, btn_col2, btn_col3 = st.columns(3)
     with btn_col1:
         if st.button("➕ Add Student to Roster", use_container_width=True):
@@ -319,7 +311,6 @@ EduPredict AI Automated System
 
     st.markdown("<hr>", unsafe_allow_html=True)
     
-    # AI Report Generator Button
     if st.button("🚀 Run Deep AI Telemetry & Diagnostic Report", use_container_width=True):
         if not student_name:
             st.error("⚠️ Please specify a student name before triggering diagnostics.")
@@ -333,7 +324,8 @@ EduPredict AI Automated System
                     Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
                     Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
                     """
-                    resp = client.models.generate_content(model="gemini-3.6-flash", contents=prompt)
+                    # UPDATED: Using gemini-1.5-flash for massively higher API limits
+                    resp = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
                     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
                     st.markdown("#### 📑 Diagnostic Output Matrix")
                     st.write(resp.text)
