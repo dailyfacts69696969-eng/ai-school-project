@@ -24,12 +24,12 @@ st.markdown("""
         100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
     }
 
-    /* Smooth text rotation animation for tips ticker */
+    /* Slower, smooth text rotation animation for the unified tips ticker */
     @keyframes rotateTips {
         0% { opacity: 0; transform: translateY(8px); }
-        10% { opacity: 1; transform: translateY(0); }
-        30% { opacity: 1; transform: translateY(0); }
-        40% { opacity: 0; transform: translateY(-8px); }
+        5% { opacity: 1; transform: translateY(0); }
+        22% { opacity: 1; transform: translateY(0); }
+        28% { opacity: 0; transform: translateY(-8px); }
         100% { opacity: 0; transform: translateY(-8px); }
     }
 
@@ -37,13 +37,13 @@ st.markdown("""
         position: absolute;
         width: 100%;
         opacity: 0;
-        animation: rotateTips 16s infinite;
+        animation: rotateTips 32s infinite;
     }
     
     .tip-item:nth-child(1) { animation-delay: 0s; }
-    .tip-item:nth-child(2) { animation-delay: 4s; }
-    .tip-item:nth-child(3) { animation-delay: 8s; }
-    .tip-item:nth-child(4) { animation-delay: 12s; }
+    .tip-item:nth-child(2) { animation-delay: 8s; }
+    .tip-item:nth-child(3) { animation-delay: 16s; }
+    .tip-item:nth-child(4) { animation-delay: 24s; }
 
     .tips-container {
         position: relative;
@@ -93,16 +93,14 @@ st.markdown("""
     }
 
     .nav-guide {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(15, 23, 42, 0.8));
-        border: 1px dashed #6366f1;
-        padding: 14px 20px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(15, 23, 42, 0.85));
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        padding: 14px 22px;
         border-radius: 12px;
         color: #cbd5e1;
         font-size: 0.9rem;
         margin-bottom: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
     
     hr { border-color: #1e293b; margin: 2rem 0; }
@@ -160,19 +158,17 @@ with col_head2:
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
-# Navigation Banner with Animated Rotating Tips Ticker
+# Unified Single Box with Prominent Navigation Notice & Slow-Rotating Pro Tips Ticker
 st.markdown("""
     <div class="nav-guide">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span>💡 <b>Navigation Tip:</b> Click the <b>&gt;&gt;</b> arrow in the <b>top-left corner</b> to access the hidden AI Teacher Assistant chat.</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(99, 102, 241, 0.25); padding-bottom: 8px; margin-bottom: 8px;">
+            <span>🧭 <b>Navigation Notice:</b> Click the <b>>></b> arrow in the top-left corner to access the hidden AI Teacher Assistant chat.</span>
         </div>
-        <div style="border-top: 1px solid rgba(99, 102, 241, 0.2); padding-top: 6px; margin-top: 2px;">
-            <div class="tips-container">
-                <div class="tip-item">⚡ <b>Pro Tip:</b> Upload clear test sheets for instant score & roll number extraction.</div>
-                <div class="tip-item">🛡️ <b>Pro Tip:</b> Monitor the Risk Profile badge to quickly spot students needing urgent intervention.</div>
-                <div class="tip-item">📊 <b>Pro Tip:</b> Use Batch Class CSV Upload to analyze entire classroom performance instantly.</div>
-                <div class="tip-item">🎙️ <b>Pro Tip:</b> Generate customized Parent-Teacher Conference scripts with a single click.</div>
-            </div>
+        <div class="tips-container">
+            <div class="tip-item">⚡ <b>Pro Tip:</b> Upload clear test sheets into the Extraction Hub for instant score and roll number auto-fill.</div>
+            <div class="tip-item">🛡️ <b>Pro Tip:</b> Keep an eye on the Risk Profile badge to instantly spot students needing urgent intervention.</div>
+            <div class="tip-item">📊 <b>Pro Tip:</b> Use the Batch Class CSV Upload to analyze entire classroom datasets and identify outliers in seconds.</div>
+            <div class="tip-item">🎙️ <b>Pro Tip:</b> Generate professional, customized Parent-Teacher Conference scripts with a single click.</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
