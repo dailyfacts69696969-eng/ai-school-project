@@ -5,6 +5,7 @@ from PIL import Image
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import json
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
@@ -14,17 +15,14 @@ st.markdown("""
     <style>
     .stApp { background-color: #f8fafc; color: #0f172a; font-family: 'Inter', sans-serif; }
     
-    /* Larger, bolder labels for readability from a distance */
     .stTextInput label p, .stNumberInput label p, .stSlider label p, .stRadio label p, .stSelectbox label p {
         color: #475569 !important; font-weight: 600 !important; font-size: 1rem !important; text-transform: uppercase; letter-spacing: 0.05em;
     }
     
-    /* Touch-friendly inputs with larger text */
     .stTextInput input, .stNumberInput input, .stChatInput textarea {
         background-color: #ffffff !important; color: #0f172a !important; border: 2px solid #cbd5e1 !important; border-radius: 12px !important; font-size: 1.1rem !important; padding: 12px !important;
     }
     
-    /* Massive, high-contrast touch buttons */
     .stButton button, .stDownloadButton button {
         background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
         color: #ffffff !important; border: none !important; border-radius: 12px !important;
@@ -32,7 +30,6 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
     
-    /* Clean white panels with soft shadows */
     .glass-panel { 
         background: #ffffff; border: 2px solid #e2e8f0; 
         padding: 30px; border-radius: 20px; 
@@ -44,12 +41,20 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Session States
+# --- SESSION STATES ---
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "Hello Teacher! I am your AI assistant. How can I help optimize your classroom today?"}]
 
 if "class_portfolio" not in st.session_state:
     st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Parent Email", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
+
+# Extracted Data States (Used to auto-populate UI)
+if "ext_name" not in st.session_state: st.session_state.ext_name = ""
+if "ext_roll" not in st.session_state: st.session_state.ext_roll = ""
+if "ext_math" not in st.session_state: st.session_state.ext_math = None
+if "ext_sci" not in st.session_state: st.session_state.ext_sci = None
+if "ext_sst" not in st.session_state: st.session_state.ext_sst = None
+if "ext_eng" not in st.session_state: st.session_state.ext_eng = None
 
 # --- SIDEBAR: AI TEACHER ASSISTANT PANEL ---
 with st.sidebar:
@@ -90,19 +95,39 @@ st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=False):
     st.markdown("#### 📄 Upload Student Paper / Test Sheet for Auto-Extraction")
     uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image)", type=["png", "jpg", "jpeg"], key="paper_up")
-    if uploaded_paper and st.button("🤖 Auto-Extract Details & Scores via Gemini"):
-        with st.spinner("Reading student paper details..."):
+    if uploaded_paper and st.button("🤖 Auto-Extract Details & Auto-Fill Fields"):
+        with st.spinner("Extracting parameters and synchronizing with dashboard UI..."):
             try:
                 image_input = Image.open(uploaded_paper)
-                prompt_paper = "Analyze this student document image. Extract the Student Name, Roll Number, and estimate or locate scores for Math, Science, SST, and English as numbers. Format strictly as clear text."
+                # Force Gemini to output STRICT JSON so Python can inject it into the UI
+                prompt_paper = """Analyze this student document image. Extract the Student Name, Roll Number, and scores for Math, Science, SST, and English. 
+                You MUST return the data STRICTLY as a valid JSON object (no markdown formatting, no backticks, just the raw JSON) with exactly these keys: 
+                {"name": "...", "roll_no": "...", "math": 0.0, "science": 0.0, "sst": 0.0, "english": 0.0}"""
+                
                 resp_paper = client.models.generate_content(
                     model="gemini-3.6-flash", 
                     contents=[prompt_paper, image_input]
                 )
-                st.success("Extraction Complete!")
-                st.write(resp_paper.text)
+                
+                # Clean up response and parse JSON
+                raw_text = resp_paper.text.strip()
+                if raw_text.startswith("```json"): raw_text = raw_text[7:-3]
+                elif raw_text.startswith("```"): raw_text = raw_text[3:-3]
+                
+                extracted_data = json.loads(raw_text)
+                
+                # Inject directly into Streamlit Session State
+                st.session_state.ext_name = extracted_data.get("name", "")
+                st.session_state.ext_roll = str(extracted_data.get("roll_no", ""))
+                st.session_state.ext_math = float(extracted_data.get("math", 0.0))
+                st.session_state.ext_sci = float(extracted_data.get("science", 0.0))
+                st.session_state.ext_sst = float(extracted_data.get("sst", 0.0))
+                st.session_state.ext_eng = float(extracted_data.get("english", 0.0))
+                
+                st.success("✅ Extraction Complete! Dashboard has been auto-populated.")
+                st.rerun() # Forces the UI to refresh immediately with the new data
             except Exception as e:
-                st.error(f"Extraction failed: {e}")
+                st.error(f"Extraction or Parsing failed: {e}")
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
@@ -112,10 +137,11 @@ left_col, right_col = st.columns([4, 8], gap="large")
 with left_col:
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
     st.markdown("<h4 style='color:#0f172a; margin-bottom: 1rem;'>👤 Student Identity Credentials</h4>", unsafe_allow_html=True)
-    student_name = st.text_input("Full Name", placeholder="e.g., Aarav Sharma")
+    # Connected directly to session state
+    student_name = st.text_input("Full Name", value=st.session_state.ext_name, placeholder="e.g., Aarav Sharma")
     r_col1, r_col2 = st.columns(2)
     with r_col1:
-        roll_no = st.text_input("Roll No.", placeholder="04")
+        roll_no = st.text_input("Roll No.", value=st.session_state.ext_roll, placeholder="04")
     with r_col2:
         class_sec = st.text_input("Class/Sec", placeholder="10-B")
     
@@ -139,15 +165,19 @@ with left_col:
     lang_opt = st.radio("Language Elective", ["Hindi", "Sanskrit", "French"], horizontal=True)
     skill_opt = st.radio("Skill Elective", ["Financial Literacy", "AI", "Computer"], horizontal=True)
     
-    if skill_opt == "AI":
-        max_skill_marks = 35 if "PT" in exam_phase else 50
-    else:
-        max_skill_marks = max_marks 
+    if skill_opt == "AI": max_skill_marks = 35 if "PT" in exam_phase else 50
+    else: max_skill_marks = max_marks 
+    
+    # Check if AI extracted data exists, otherwise use standard defaults
+    val_math = st.session_state.ext_math if st.session_state.ext_math is not None else float(int(max_marks*0.75))
+    val_sci = st.session_state.ext_sci if st.session_state.ext_sci is not None else float(int(max_marks*0.70))
+    val_sst = st.session_state.ext_sst if st.session_state.ext_sst is not None else float(int(max_marks*0.70))
+    val_eng = st.session_state.ext_eng if st.session_state.ext_eng is not None else float(int(max_marks*0.80))
         
-    sc_math = st.number_input(f"Mathematics (Max: {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.75)), step=0.5)
-    sc_sci = st.number_input(f"Science (Max: {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
-    sc_sst = st.number_input(f"Social Science (Max: {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.70)), step=0.5)
-    sc_eng = st.number_input(f"English (Max: {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.80)), step=0.5)
+    sc_math = st.number_input(f"Mathematics (Max: {max_marks})", 0.0, float(max_marks), val_math, step=0.5)
+    sc_sci = st.number_input(f"Science (Max: {max_marks})", 0.0, float(max_marks), val_sci, step=0.5)
+    sc_sst = st.number_input(f"Social Science (Max: {max_marks})", 0.0, float(max_marks), val_sst, step=0.5)
+    sc_eng = st.number_input(f"English (Max: {max_marks})", 0.0, float(max_marks), val_eng, step=0.5)
     sc_lang = st.number_input(f"{lang_opt} (Max: {max_marks})", 0.0, float(max_marks), float(int(max_marks*0.85)), step=0.5)
     sc_skill = st.number_input(f"{skill_opt} (Max: {max_skill_marks})", 0.0, float(max_skill_marks), float(int(max_skill_marks*0.90)), step=0.5)
     st.markdown("</div>", unsafe_allow_html=True)
@@ -160,7 +190,7 @@ with right_col:
     }
     avg_score = sum(scores.values()) / len(scores)
     
-    # KPI Grid (Updated text colors for light theme)
+    # KPI Grid
     kpi1, kpi2, kpi3 = st.columns(3)
     with kpi1:
         st.markdown(f"""
