@@ -10,7 +10,7 @@ import json
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 # --- CYBER-DARK THEME & ANIMATED CSS ---
-st.set_page_config(page_title="EduPredict AI", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="EduPredict AI | NCS Goa", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <style>
     @keyframes fadeIn {
@@ -20,24 +20,24 @@ st.markdown("""
     
     @keyframes pulseGlow {
         0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
-        50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6); }
+        50% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.7); }
         100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
     }
 
-    /* Smooth, premium blur-fade rotation animation for the unified single-box ticker */
     @keyframes rotateTips {
-        0% { opacity: 0; transform: translateY(10px); filter: blur(4px); }
-        6% { opacity: 1; transform: translateY(0); filter: blur(0px); }
+        0% { opacity: 0; transform: translateY(8px); filter: blur(2px); }
+        8% { opacity: 1; transform: translateY(0); filter: blur(0px); }
         18% { opacity: 1; transform: translateY(0); filter: blur(0px); }
-        24% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
-        100% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
+        24% { opacity: 0; transform: translateY(-8px); filter: blur(2px); }
+        100% { opacity: 0; transform: translateY(-8px); filter: blur(2px); }
     }
 
     .tip-item {
         position: absolute;
         width: 100%;
         opacity: 0;
-        animation: rotateTips 35s infinite;
+        will-change: transform, opacity, filter;
+        animation: rotateTips 35s cubic-bezier(0.25, 1, 0.5, 1) infinite;
     }
     
     .tip-item:nth-child(1) { animation-delay: 0s; }
@@ -105,14 +105,27 @@ st.markdown("""
         margin-bottom: 1.5rem;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
+
+    .welcome-card {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 27, 75, 0.6));
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        padding: 45px;
+        border-radius: 24px;
+        text-align: center;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+        animation: fadeIn 0.8s ease-out;
+    }
     
     hr { border-color: #1e293b; margin: 2rem 0; }
     </style>
 """, unsafe_allow_html=True)
 
 # --- SESSION STATES ---
+if "app_started" not in st.session_state:
+    st.session_state.app_started = False
+
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hello Teacher! I am your AI assistant. How can I help optimize your classroom today?"}]
+    st.session_state.messages = [{"role": "assistant", "content": "Hello Teacher! I am your AI assistant. How can I help optimize your Standard 10 classroom today?"}]
 
 if "class_portfolio" not in st.session_state:
     st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Parent Email", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
@@ -126,10 +139,33 @@ if "ext_sst" not in st.session_state: st.session_state.ext_sst = None
 if "ext_eng" not in st.session_state: st.session_state.ext_eng = None
 if "raw_extracted" not in st.session_state: st.session_state.raw_extracted = None
 
+# --- FIRE WELCOME / LANDING PAGE FOR TEACHERS ---
+if not st.session_state.app_started:
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col_w1, col_w2, col_w3 = st.columns([1, 2.5, 1])
+    with col_w2:
+        st.markdown("""
+            <div class="welcome-card">
+                <div style="font-size: 3rem; margin-bottom: 10px;">⚓</div>
+                <h4 style="color: #818cf8; text-transform: uppercase; letter-spacing: 0.15em; font-size: 0.9rem; margin-bottom: 5px;">Navy Children School, Goa</h4>
+                <h1 style="color: #ffffff; font-size: 2.4rem; font-weight: 800; margin-bottom: 10px;">EduPredict AI</h1>
+                <p style="color: #94a3b8; font-size: 1.05rem; margin-bottom: 25px;">Enterprise Classroom Intelligence & Predictive Analytics Platform<br><b style='color: #6366f1;'>Standard 10th Exclusive Edition</b></p>
+                <hr style="margin: 1.5rem 0;">
+                <p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; margin-bottom: 30px;">
+                    Empowering educators with automated vision score extraction, predictive risk profiling, batch class telemetry insights, and intelligent parent communication workflows.
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🚀 Launch Standard 10th Intelligence Hub", use_container_width=True):
+            st.session_state.app_started = True
+            st.rer()
+    st.stop()
+
 # --- SIDEBAR: AI TEACHER ASSISTANT PANEL ---
 with st.sidebar:
     st.markdown("### 💬 AI Teacher Assistant")
-    st.caption("Ask for lesson plans, parent emails, or grading guidance.")
+    st.caption("Standard 10th Lesson plans, parent emails, & guidance.")
     
     chat_container = st.container(height=450)
     with chat_container:
@@ -154,29 +190,29 @@ with st.sidebar:
 # --- HEADER BAR ---
 col_head1, col_head2 = st.columns([3, 1])
 with col_head1:
-    st.markdown("### ⚡ EduPredict AI <span style='color:#6366f1; font-size: 1rem;'>// Enterprise Classroom Intelligence</span>", unsafe_allow_html=True)
+    st.markdown("### ⚡ EduPredict AI <span style='color:#6366f1; font-size: 1rem;'>// NCS Goa - Standard 10</span>", unsafe_allow_html=True)
 with col_head2:
     exam_phase = st.selectbox("Active Evaluation Phase", ["PT-1", "Half Yearly", "PT-2", "Preboards"])
     max_marks = 40 if "PT" in exam_phase else 80
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
-# Unified Single Box with Smooth Blur-Fade Rotating Navigation & Pro Tips Ticker
+# Unified Single Box with Prominent Navigation Notice & Slow-Rotating Pro Tips Ticker
 st.markdown("""
     <div class="nav-guide">
         <div class="tips-container">
             <div class="tip-item">🧭 <b>Navigation Notice:</b> Click the <b>>></b> arrow in the top-left corner to access the hidden AI Teacher Assistant chat.</div>
-            <div class="tip-item">⚡ <b>Pro Tip:</b> Upload clear test sheets into the Extraction Hub for instant score and roll number auto-fill.</div>
-            <div class="tip-item">🛡️ <b>Pro Tip:</b> Keep an eye on the Risk Profile badge to instantly spot students needing urgent intervention.</div>
-            <div class="tip-item">📊 <b>Pro Tip:</b> Use the Batch Class CSV Upload to analyze entire classroom datasets and identify outliers in seconds.</div>
-            <div class="tip-item">🎙️ <b>Pro Tip:</b> Generate professional, customized Parent-Teacher Conference scripts with a single click.</div>
+            <div class="tip-item">⚡ <b>Pro Tip:</b> Upload clear Standard 10 test sheets into the Extraction Hub for instant score and roll number auto-fill.</div>
+            <div class="tip-item">🛡️ <b>Pro Tip:</b> Keep an eye on the Risk Profile badge to instantly spot students needing urgent board exam intervention.</div>
+            <div class="tip-item">📊 <b>Pro Tip:</b> Use the Batch Class CSV Upload to analyze entire Standard 10 classroom datasets and identify outliers in seconds.</div>
+            <div class="tip-item">🎙️ <b>Pro Tip:</b> Generate professional, customized Parent-Teacher Conference scripts for board readiness with a single click.</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
 # --- AI DOCUMENT INGESTION HUB ---
 with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=False):
-    st.markdown("#### 📄 Upload Student Paper / Test Sheet for Extraction")
+    st.markdown("#### 📄 Upload Standard 10 Student Paper / Test Sheet for Extraction")
     uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image)", type=["png", "jpg", "jpeg"], key="paper_up")
     
     col_btn1, col_btn2 = st.columns(2)
@@ -244,7 +280,7 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
 
 # --- BATCH CLASS CSV UPLOAD HUB ---
 with st.expander("📊 Batch Class CSV Upload & AI Classroom Analytics", expanded=False):
-    st.markdown("#### Upload Class Dataset for Bulk AI Insights & Outlier Detection")
+    st.markdown("#### Upload Standard 10 Class Dataset for Bulk AI Insights & Outlier Detection")
     uploaded_csv = st.file_uploader("Upload Class Dataset (CSV format)", type=["csv"], key="batch_csv_up")
     if uploaded_csv:
         df_batch = pd.read_csv(uploaded_csv)
@@ -254,11 +290,11 @@ with st.expander("📊 Batch Class CSV Upload & AI Classroom Analytics", expande
                 try:
                     csv_summary = df_batch.to_string(index=False)
                     batch_prompt = f"""
-                    Act as an elite CBSE Class 10 principal and data analyst. 
-                    Analyze this classroom dataset containing student performance and behavioral telemetry:
+                    Act as an elite CBSE Class 10 principal and data analyst at Navy Children School Goa. 
+                    Analyze this Standard 10 classroom dataset containing student performance and behavioral telemetry:
                     {csv_summary}
                     Provide an executive bulk summary including:
-                    1. Overall class performance health and macro trends.
+                    1. Overall class performance health and board exam readiness.
                     2. Identification of high-risk or outlier students needing urgent intervention.
                     3. Actionable recommendations for pedagogical adjustments.
                     """
@@ -277,13 +313,13 @@ left_col, right_col = st.columns([4, 8], gap="large")
 
 with left_col:
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>👤 Student Identity Credentials</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>👤 Standard 10 Student Credentials</h4>", unsafe_allow_html=True)
     student_name = st.text_input("Full Name", value=st.session_state.ext_name, placeholder="e.g., Aarav Sharma")
     r_col1, r_col2 = st.columns(2)
     with r_col1:
         roll_no = st.text_input("Roll No.", value=st.session_state.ext_roll, placeholder="04")
     with r_col2:
-        class_sec = st.text_input("Class/Sec", placeholder="10-B")
+        class_sec = st.text_input("Class/Sec", value="10-", placeholder="10-A")
     
     p_col1, p_col2 = st.columns(2)
     with p_col1:
@@ -376,7 +412,7 @@ with right_col:
     st.bar_chart(chart_data, x="Subject", y="Score (%)", color="#6366f1", height=250)
 
     if avg_score < 50:
-        st.error("⚠️ Critical Alert: Student's overall average is below 50%. Immediate intervention required.")
+        st.error("⚠️ Critical Alert: Student's overall average is below 50%. Immediate board intervention required.")
         if st.button("📧 Dispatch Automated Email Alert to Parent", use_container_width=True):
             if not parent_email:
                 st.warning("Please enter a valid Parent Email Address on the left panel.")
@@ -392,13 +428,13 @@ with right_col:
                             msg = MIMEMultipart()
                             msg['From'] = sender_email
                             msg['To'] = parent_email
-                            msg['Subject'] = f"Academic Performance Alert: {student_name} - {exam_phase}"
+                            msg['Subject'] = f"NCS Goa Board Academic Alert: {student_name} - {exam_phase}"
                             
                             body = f"""Dear Parent,
 
-This is an automated academic alert from the EduPredict AI system.
+This is an automated academic alert from the EduPredict AI system for Navy Children School, Goa (Standard 10).
 
-We are writing to inform you regarding {student_name}'s performance in the recent {exam_phase} evaluations. Currently, their overall average is {avg_score:.1f}%, which requires immediate attention.
+We are writing to inform you regarding {student_name}'s performance in the recent {exam_phase} evaluations. Currently, their overall average is {avg_score:.1f}%, which requires immediate attention for board preparation.
 
 Subject Breakdown (Percentage):
 - Mathematics: {scores['Maths']:.1f}%
@@ -414,6 +450,7 @@ Please contact the school academic coordinator at your earliest convenience to s
 
 Sincerely,
 EduPredict AI Automated System
+Navy Children School, Goa
 """
                             msg.attach(MIMEText(body, 'plain'))
                             
@@ -430,7 +467,7 @@ EduPredict AI Automated System
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    st.markdown("#### 📊 Live Master Class Roster Database")
+    st.markdown("#### 📊 Live Master Class Roster Database (Standard 10)")
     if not st.session_state.class_portfolio.empty:
         st.dataframe(st.session_state.class_portfolio, use_container_width=True)
     else:
@@ -454,7 +491,7 @@ EduPredict AI Automated System
             csv_file = st.session_state.class_portfolio.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="📥 Export Master CSV", data=csv_file,
-                file_name=f"CBSE_Class_Portfolio_{exam_phase}.csv", mime="text/csv", use_container_width=True
+                file_name=f"NCS_Goa_Std10_Portfolio_{exam_phase}.csv", mime="text/csv", use_container_width=True
             )
         else:
             st.button("📥 Export Master CSV", disabled=True, use_container_width=True)
@@ -476,15 +513,15 @@ EduPredict AI Automated System
                 with st.spinner("Synthesizing behavioral metrics with Gemini core..."):
                     try:
                         prompt = f"""
-                        Act as an elite CBSE Class 10 academic coordinator.
+                        Act as an elite CBSE Class 10 academic coordinator at Navy Children School, Goa.
                         Student: {student_name} ({class_sec}, Roll: {roll_no}). Phase: {exam_phase}
                         Telemetry: {attendance}% attendance, {assignments}% assignments.
                         Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
-                        Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
+                        Provide an executive 4-bullet assessment covering board exam trajectory and tactical intervention steps.
                         """
                         resp = client.models.generate_content(model="gemini-3.5-flash", contents=prompt)
                         st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-                        st.markdown("#### 📑 Diagnostic Output Matrix")
+                        st.markdown("#### 📑 Standard 10 Board Diagnostic Output Matrix")
                         st.write(resp.text)
                         st.markdown("</div>", unsafe_allow_html=True)
                     except Exception as e:
@@ -498,13 +535,13 @@ EduPredict AI Automated System
                 with st.spinner("Drafting personalized meeting agenda and conversation script with Gemini..."):
                     try:
                         script_prompt = f"""
-                        Act as an expert CBSE Class 10 educator preparing for a Parent-Teacher Conference.
+                        Act as an expert CBSE Class 10 educator at Navy Children School, Goa preparing for a Parent-Teacher Conference.
                         Student: {student_name} ({class_sec}, Roll: {roll_no}). Phase: {exam_phase}
                         Telemetry: Attendance {attendance}%, Assignments {assignments}%.
                         Scores (%): Math {scores['Maths']:.1f}, Science {scores['Science']:.1f}, SST {scores['SST']:.1f}, English {scores['English']:.1f}, {lang_opt} {scores[lang_opt]:.1f}, {skill_opt} {scores[skill_opt]:.1f}.
                         Overall Average: {avg_score:.1f}%
                         
-                        Generate a professional, personalized meeting agenda and a conversation script for the teacher to use when sitting down with the parents. 
+                        Generate a professional, personalized meeting agenda and a conversation script for the teacher to use when sitting down with the parents regarding board preparation. 
                         Highlight:
                         1. Meeting Agenda Structure
                         2. Key Student Strengths
@@ -513,7 +550,7 @@ EduPredict AI Automated System
                         """
                         script_resp = client.models.generate_content(model="gemini-3.5-flash", contents=script_prompt)
                         st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-                        st.markdown("#### 🎙️ Parent-Teacher Conference Script & Agenda")
+                        st.markdown("#### 🎙️ NCS Goa - Parent-Teacher Conference Script & Agenda")
                         st.markdown(script_resp.text)
                         st.markdown("</div>", unsafe_allow_html=True)
                     except Exception as e:
