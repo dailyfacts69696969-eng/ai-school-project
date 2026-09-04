@@ -9,27 +9,29 @@ import json
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-# --- CYBER-DARK THEME & BUTTER-SMOOTH ANIMATED CSS ---
+# --- APPLE-INSPIRED DESIGN SYSTEM & FLUID ANIMATIONS ---
 st.set_page_config(page_title="EduPredict AI | NCS Goa", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <style>
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(12px); }
-        to { opacity: 1; transform: translateY(0); }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    @keyframes appleFadeIn {
+        from { opacity: 0; transform: translateY(16px) scale(0.99); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
     }
     
-    @keyframes pulseGlow {
-        0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
-        50% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.7); }
-        100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
+    @keyframes appleGlow {
+        0% { box-shadow: 0 0 0px rgba(10, 132, 255, 0.1); }
+        50% { box-shadow: 0 0 25px rgba(10, 132, 255, 0.35); }
+        100% { box-shadow: 0 0 0px rgba(10, 132, 255, 0.1); }
     }
 
     @keyframes rotateTips {
-        0% { opacity: 0; transform: translateY(8px); filter: blur(2px); }
+        0% { opacity: 0; transform: translateY(10px); filter: blur(4px); }
         8% { opacity: 1; transform: translateY(0); filter: blur(0px); }
         18% { opacity: 1; transform: translateY(0); filter: blur(0px); }
-        24% { opacity: 0; transform: translateY(-8px); filter: blur(2px); }
-        100% { opacity: 0; transform: translateY(-8px); filter: blur(2px); }
+        24% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
+        100% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
     }
 
     .tip-item {
@@ -37,7 +39,7 @@ st.markdown("""
         width: 100%;
         opacity: 0;
         will-change: transform, opacity, filter;
-        animation: rotateTips 35s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+        animation: rotateTips 35s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     }
     
     .tip-item:nth-child(1) { animation-delay: 0s; }
@@ -48,75 +50,82 @@ st.markdown("""
 
     .tips-container {
         position: relative;
-        height: 26px;
+        height: 24px;
         overflow: hidden;
         width: 100%;
         display: flex;
         align-items: center;
     }
 
-    .stApp { background-color: #030712; color: #f8fafc; font-family: 'Inter', sans-serif; animation: fadeIn 0.8s ease-out; }
+    .stApp { 
+        background-color: #000000; 
+        color: #f5f5f7; 
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Helvetica Neue", sans-serif; 
+        animation: appleFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1); 
+    }
     
     .stTextInput label p, .stNumberInput label p, .stSlider label p, .stRadio label p, .stSelectbox label p {
-        color: #94a3b8 !important; font-weight: 500 !important; font-size: 0.85rem !important; text-transform: uppercase; letter-spacing: 0.05em;
+        color: #86868b !important; font-weight: 500 !important; font-size: 0.75rem !important; text-transform: uppercase; letter-spacing: 0.08em;
     }
     
     .stTextInput input, .stNumberInput input, .stChatInput textarea {
-        background-color: #0f172a !important; color: #ffffff !important; border: 1px solid #1e293b !important; border-radius: 8px !important;
-        transition: all 0.3s ease;
+        background-color: #1c1c1e !important; color: #f5f5f7 !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 10px !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     
     .stTextInput input:focus, .stNumberInput input:focus {
-        border-color: #6366f1 !important; box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+        border-color: #0a84ff !important; box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.25);
     }
     
     .stButton button, .stDownloadButton button {
-        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
-        color: #ffffff !important; border: none !important; border-radius: 8px !important;
-        font-weight: 600 !important; letter-spacing: 0.025em; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        background: linear-gradient(135deg, #0a84ff 0%, #0062d2) !important;
+        color: #ffffff !important; border: none !important; border-radius: 980px !important;
+        font-weight: 500 !important; letter-spacing: 0.01em; padding: 0.5rem 1.25rem;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 4px 16px rgba(10, 132, 255, 0.3);
     }
     
     .stButton button:hover {
-        transform: translateY(-2px);
-        animation: pulseGlow 1.5s infinite;
+        transform: scale(1.02);
+        animation: appleGlow 1.5s infinite;
     }
     
     .glass-panel { 
-        background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(30, 41, 59, 0.8); 
-        padding: 24px; border-radius: 16px; backdrop-filter: blur(12px);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        animation: fadeIn 0.6s ease-out;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: rgba(28, 28, 30, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); 
+        padding: 28px; border-radius: 20px; backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        animation: appleFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
     }
     
     .glass-panel:hover {
-        border-color: rgba(99, 102, 241, 0.4);
-        box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.15);
+        border-color: rgba(10, 132, 255, 0.3);
     }
 
     .nav-guide {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(15, 23, 42, 0.85));
-        border: 1px solid rgba(99, 102, 241, 0.4);
+        background: linear-gradient(135deg, rgba(28, 28, 30, 0.8), rgba(10, 132, 255, 0.08));
+        border: 1px solid rgba(255, 255, 255, 0.1);
         padding: 14px 22px;
-        border-radius: 12px;
-        color: #cbd5e1;
-        font-size: 0.9rem;
+        border-radius: 14px;
+        color: #a1a1a6;
+        font-size: 0.85rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
     .welcome-card {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 27, 75, 0.6));
-        border: 1px solid rgba(99, 102, 241, 0.4);
-        padding: 45px;
-        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(28, 28, 30, 0.85), rgba(10, 132, 255, 0.12));
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 50px;
+        border-radius: 28px;
         text-align: center;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
-        animation: fadeIn 0.8s ease-out;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+        animation: appleFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        backdrop-filter: blur(30px);
     }
     
-    hr { border-color: #1e293b; margin: 2rem 0; }
+    hr { border-color: rgba(255, 255, 255, 0.08); margin: 2rem 0; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -125,7 +134,7 @@ if "app_started" not in st.session_state:
     st.session_state.app_started = False
 
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hello Teacher! I am your AI assistant. How can I help optimize your Standard 10 classroom today?"}]
+    st.session_state.messages = [{"role": "assistant", "content": "Hello Teacher! I am your Apple-styled AI assistant. How can I help optimize your Standard 10 classroom today?"}]
 
 if "class_portfolio" not in st.session_state:
     st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Parent Email", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
@@ -139,25 +148,25 @@ if "ext_sst" not in st.session_state: st.session_state.ext_sst = None
 if "ext_eng" not in st.session_state: st.session_state.ext_eng = None
 if "raw_extracted" not in st.session_state: st.session_state.raw_extracted = None
 
-# --- FIRE WELCOME / LANDING PAGE FOR TEACHERS ---
+# --- APPLE-STYLE WELCOME / LANDING PAGE ---
 if not st.session_state.app_started:
     st.markdown("<br><br>", unsafe_allow_html=True)
-    col_w1, col_w2, col_w3 = st.columns([1, 2.5, 1])
+    col_w1, col_w2, col_w3 = st.columns([1, 2.6, 1])
     with col_w2:
         st.markdown("""
             <div class="welcome-card">
-                <div style="font-size: 3rem; margin-bottom: 10px;">⚓</div>
-                <h4 style="color: #818cf8; text-transform: uppercase; letter-spacing: 0.15em; font-size: 0.9rem; margin-bottom: 5px;">Navy Children School, Goa</h4>
-                <h1 style="color: #ffffff; font-size: 2.4rem; font-weight: 800; margin-bottom: 10px;">EduPredict AI</h1>
-                <p style="color: #94a3b8; font-size: 1.05rem; margin-bottom: 25px;">Enterprise Classroom Intelligence & Predictive Analytics Platform<br><b style='color: #6366f1;'>Standard 10th Exclusive Edition</b></p>
+                <div style="font-size: 3rem; margin-bottom: 12px;"></div>
+                <h4 style="color: #0a84ff; text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.75rem; margin-bottom: 6px;">Navy Children School, Goa</h4>
+                <h1 style="color: #f5f5f7; font-size: 2.8rem; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 12px;">EduPredict AI</h1>
+                <p style="color: #86868b; font-size: 1.1rem; margin-bottom: 25px;">Pro-Grade Classroom Intelligence & Predictive Analytics<br><b style='color: #0a84ff;'>Standard 10th Exclusive Edition</b></p>
                 <hr style="margin: 1.5rem 0;">
-                <p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; margin-bottom: 30px;">
-                    Empowering educators with automated vision score extraction, predictive risk profiling, batch class telemetry insights, and intelligent parent communication workflows.
+                <p style="color: #a1a1a6; font-size: 0.9rem; line-height: 1.6; margin-bottom: 30px;">
+                    Designed with precision for educators. Featuring computer vision extraction, fluid predictive modeling, and seamless parent communication workflows.
                 </p>
             </div>
         """, unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🚀 Launch Standard 10th Intelligence Hub", use_container_width=True):
+        if st.button("Launch Standard 10th Intelligence Hub", use_container_width=True):
             st.session_state.app_started = True
             st.rerun()
     st.stop()
@@ -165,7 +174,7 @@ if not st.session_state.app_started:
 # --- SIDEBAR: AI TEACHER ASSISTANT PANEL ---
 with st.sidebar:
     st.markdown("### 💬 AI Teacher Assistant")
-    st.caption("Standard 10th Lesson plans, parent emails, & guidance.")
+    st.caption("Standard 10th Guidance & Workflows.")
     
     chat_container = st.container(height=450)
     with chat_container:
@@ -190,7 +199,7 @@ with st.sidebar:
 # --- HEADER BAR ---
 col_head1, col_head2 = st.columns([3, 1])
 with col_head1:
-    st.markdown("### ⚡ EduPredict AI <span style='color:#6366f1; font-size: 1rem;'>// NCS Goa - Standard 10</span>", unsafe_allow_html=True)
+    st.markdown("### EduPredict AI <span style='color:#0a84ff; font-size: 0.9rem; font-weight: 400;'>// NCS Goa · Standard 10</span>", unsafe_allow_html=True)
 with col_head2:
     exam_phase = st.selectbox("Active Evaluation Phase", ["PT-1", "Half Yearly", "PT-2", "Preboards"])
     max_marks = 40 if "PT" in exam_phase else 80
@@ -313,7 +322,7 @@ left_col, right_col = st.columns([4, 8], gap="large")
 
 with left_col:
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>👤 Standard 10 Student Credentials</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#f5f5f7; font-size: 1rem; margin-bottom: 1rem;'>👤 Standard 10 Student Credentials</h4>", unsafe_allow_html=True)
     student_name = st.text_input("Full Name", value=st.session_state.ext_name, placeholder="e.g., Aarav Sharma")
     r_col1, r_col2 = st.columns(2)
     with r_col1:
@@ -329,7 +338,7 @@ with left_col:
     st.markdown("</div><br>", unsafe_allow_html=True)
 
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>🏫 Behavioral Telemetry</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#f5f5f7; font-size: 1rem; margin-bottom: 1rem;'>🏫 Behavioral Telemetry</h4>", unsafe_allow_html=True)
     attendance = st.slider("Attendance Rate (%)", 0, 100, 88)
     assignments = st.slider("Assignment Completion (%)", 0, 100, 92)
     participation = st.slider("Class Participation Score", 1, 10, 8)
@@ -337,7 +346,7 @@ with left_col:
     st.markdown("</div><br>", unsafe_allow_html=True)
 
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>📚 Subject Score Matrix</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#f5f5f7; font-size: 1rem; margin-bottom: 1rem;'>📚 Subject Score Matrix</h4>", unsafe_allow_html=True)
     lang_opt = st.radio("Language Elective", ["Hindi", "Sanskrit", "French"], horizontal=True)
     skill_opt = st.radio("Skill Elective", ["Financial Literacy", "AI", "Computer"], horizontal=True)
     
@@ -381,24 +390,24 @@ with right_col:
     with kpi1:
         st.markdown(f"""
             <div class='glass-panel' style='text-align: center; padding: 15px;'>
-                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>AVG</p>
-                <h3 style='color: #818cf8; font-size: 1.8rem; margin: 0;'>{avg_score:.1f}%</h3>
+                <p style='color: #86868b; font-size: 0.75rem; text-transform: uppercase;'>AVG</p>
+                <h3 style='color: #0a84ff; font-size: 1.8rem; margin: 0;'>{avg_score:.1f}%</h3>
             </div>
         """, unsafe_allow_html=True)
     with kpi2:
-        risk_color = "#10b981" if avg_score > 75 and attendance > 75 else "#ef4444"
+        risk_color = "#30d158" if avg_score > 75 and attendance > 75 else "#ff453a"
         risk_text = "LOW RISK 🟢" if avg_score > 75 and attendance > 75 else "HIGH RISK 🔴"
         st.markdown(f"""
             <div class='glass-panel' style='text-align: center; padding: 15px;'>
-                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Risk Profile</p>
+                <p style='color: #86868b; font-size: 0.75rem; text-transform: uppercase;'>Risk Profile</p>
                 <h3 style='color: {risk_color}; font-size: 1.2rem; margin-top: 5px;'>{risk_text}</h3>
             </div>
         """, unsafe_allow_html=True)
     with kpi3:
         st.markdown(f"""
             <div class='glass-panel' style='text-align: center; padding: 15px;'>
-                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Gain Potential</p>
-                <h3 style='color: #10b981; font-size: 1.8rem; margin: 0;'>+{gain_potential}%</h3>
+                <p style='color: #86868b; font-size: 0.75rem; text-transform: uppercase;'>Gain Potential</p>
+                <h3 style='color: #30d158; font-size: 1.8rem; margin: 0;'>+{gain_potential}%</h3>
             </div>
         """, unsafe_allow_html=True)
 
@@ -409,7 +418,7 @@ with right_col:
         "Subject": list(scores.keys()),
         "Score (%)": list(scores.values())
     })
-    st.bar_chart(chart_data, x="Subject", y="Score (%)", color="#6366f1", height=250)
+    st.bar_chart(chart_data, x="Subject", y="Score (%)", color="#0a84ff", height=250)
 
     if avg_score < 50:
         st.error("⚠️ Critical Alert: Student's overall average is below 50%. Immediate board intervention required.")
