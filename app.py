@@ -47,14 +47,18 @@ if "messages" not in st.session_state:
 if "class_portfolio" not in st.session_state:
     st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Parent Email", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
 
-# Extracted Data States
+# Extracted Data States (Used to auto-populate UI)
 if "ext_name" not in st.session_state: st.session_state.ext_name = ""
 if "ext_roll" not in st.session_state: st.session_state.ext_roll = ""
 if "ext_math" not in st.session_state: st.session_state.ext_math = None
 if "ext_sci" not in st.session_state: st.session_state.ext_sci = None
 if "ext_sst" not in st.session_state: st.session_state.ext_sst = None
 if "ext_eng" not in st.session_state: st.session_state.ext_eng = None
-if "raw_extracted" not in st.session_state: st.session_state.raw_extracted = None
+if "extracted_exam_phase" not in st.session_state: st.session_state.extracted_exam_phase = None
+
+# Track the selected exam phase so old extracted marks don't carry into a new exam.
+if "previous_exam_phase" not in st.session_state:
+    st.session_state.previous_exam_phase = None
 
 # --- SIDEBAR: AI TEACHER ASSISTANT PANEL ---
 with st.sidebar:
@@ -87,21 +91,30 @@ with col_head1:
     st.markdown("### ⚡ EduPredict AI <span style='color:#6366f1; font-size: 1rem;'>// Enterprise Classroom Intelligence</span>", unsafe_allow_html=True)
 with col_head2:
     exam_phase = st.selectbox("Active Evaluation Phase", ["PT-1", "Half Yearly", "PT-2", "Preboards"])
+
+    # Clear extracted marks when the teacher switches to another exam phase.
+    if st.session_state.previous_exam_phase is None:
+        st.session_state.previous_exam_phase = exam_phase
+    elif st.session_state.previous_exam_phase != exam_phase:
+        st.session_state.ext_math = None
+        st.session_state.ext_sci = None
+        st.session_state.ext_sst = None
+        st.session_state.ext_eng = None
+        st.session_state.ext_name = ""
+        st.session_state.ext_roll = ""
+        st.session_state.extracted_exam_phase = None
+        st.session_state.previous_exam_phase = exam_phase
+
     max_marks = 40 if "PT" in exam_phase else 80
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
 # --- AI DOCUMENT INGESTION HUB ---
 with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=False):
-    st.markdown("#### 📄 Upload Student Paper / Test Sheet for Extraction")
+    st.markdown("#### 📄 Upload Student Paper / Test Sheet for Auto-Extraction")
     uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image)", type=["png", "jpg", "jpeg"], key="paper_up")
-    
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        extract_clicked = st.button("🔍 Extract & Inspect Details", use_container_width=True)
-        
-    if uploaded_paper and extract_clicked:
-        with st.spinner("Analyzing document with Gemini core..."):
+    if uploaded_paper and st.button("🤖 Auto-Extract Details & Auto-Fill Fields"):
+        with st.spinner("Extracting parameters and synchronizing with dashboard UI..."):
             try:
                 image_input = Image.open(uploaded_paper)
                 prompt_paper = """Analyze this student document image. Extract the Student Name, Roll Number, and scores for Math, Science, SST, and English. 
@@ -117,48 +130,30 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
                 if raw_text.startswith("```json"): raw_text = raw_text[7:-3]
                 elif raw_text.startswith("```"): raw_text = raw_text[3:-3]
                 
-                st.session_state.raw_extracted = json.loads(raw_text)
-                st.success("✅ Extraction Complete! View clean preview below.")
+                extracted_data = json.loads(raw_text)
+                
+                st.session_state.ext_name = extracted_data.get("name", "") or ""
+                st.session_state.ext_roll = str(extracted_data.get("roll_no") or "")
+                st.session_state.student_name = st.session_state.ext_name
+                st.session_state.roll_no = st.session_state.ext_roll
+                
+                # Safe float parsing to prevent NoneType TypeError
+                m_val = extracted_data.get("math")
+                st.session_state.ext_math = float(m_val) if m_val is not None else 0.0
+                
+                s_val = extracted_data.get("science")
+                st.session_state.ext_sci = float(s_val) if s_val is not None else 0.0
+                
+                sst_val = extracted_data.get("sst")
+                st.session_state.ext_sst = float(sst_val) if sst_val is not None else 0.0
+                
+                e_val = extracted_data.get("english")
+                st.session_state.ext_eng = float(e_val) if e_val is not None else 0.0
+                
+                st.success("✅ Extraction Complete! Dashboard has been auto-populated.")
+                st.rerun()
             except Exception as e:
                 st.error(f"Extraction or Parsing failed: {e}")
-
-    # CLEANER UI FOR PREVIEW (No ugly raw JSON boxes)
-    if st.session_state.raw_extracted:
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-        st.markdown("#### 📋 Extracted Document Preview Matrix", unsafe_allow_html=True)
-        
-        ext = st.session_state.raw_extracted
-        p_name = ext.get("name") or "Not Detected"
-        p_roll = ext.get("roll_no") or "N/A"
-        p_math = ext.get("math") if ext.get("math") is not None else 0.0
-        p_sci = ext.get("science") if ext.get("science") is not None else 0.0
-        p_sst = ext.get("sst") if ext.get("sst") is not None else 0.0
-        p_eng = ext.get("english") if ext.get("english") is not None else 0.0
-
-        prev_col1, prev_col2, prev_col3 = st.columns(3)
-        with prev_col1:
-            st.metric("Detected Student", p_name)
-            st.metric("Roll Number", p_roll)
-        with prev_col2:
-            st.metric("Mathematics", p_math)
-            st.metric("Science", p_sci)
-        with prev_col3:
-            st.metric("Social Science", p_sst)
-            st.metric("English", p_eng)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("✨ Apply Extracted Data to Form (Auto-Fill)", use_container_width=True):
-            st.session_state.ext_name = p_name if p_name != "Not Detected" else ""
-            st.session_state.ext_roll = p_roll if p_roll != "N/A" else ""
-            st.session_state.ext_math = float(p_math)
-            st.session_state.ext_sci = float(p_sci)
-            st.session_state.ext_sst = float(p_sst)
-            st.session_state.ext_eng = float(p_eng)
-            
-            st.success("✅ Form successfully auto-filled with extracted data!")
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
@@ -168,10 +163,16 @@ left_col, right_col = st.columns([4, 8], gap="large")
 with left_col:
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
     st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>👤 Student Identity Credentials</h4>", unsafe_allow_html=True)
-    student_name = st.text_input("Full Name", value=st.session_state.ext_name, placeholder="e.g., Aarav Sharma")
+    # Explicit widget keys keep manual edits stable across Streamlit reruns.
+    if "student_name" not in st.session_state:
+        st.session_state.student_name = st.session_state.ext_name
+    if "roll_no" not in st.session_state:
+        st.session_state.roll_no = st.session_state.ext_roll
+
+    student_name = st.text_input("Full Name", key="student_name", placeholder="e.g., Aarav Sharma")
     r_col1, r_col2 = st.columns(2)
     with r_col1:
-        roll_no = st.text_input("Roll No.", value=st.session_state.ext_roll, placeholder="04")
+        roll_no = st.text_input("Roll No.", key="roll_no", placeholder="04")
     with r_col2:
         class_sec = st.text_input("Class/Sec", placeholder="10-B")
     
@@ -198,6 +199,7 @@ with left_col:
     if skill_opt == "AI": max_skill_marks = 35 if "PT" in exam_phase else 50
     else: max_skill_marks = max_marks 
     
+    # Safe value calculations with bounds-clamping and None protection
     raw_math = st.session_state.ext_math if st.session_state.ext_math is not None else float(int(max_marks*0.75))
     val_math = min(float(raw_math), float(max_marks))
 
@@ -230,7 +232,7 @@ with right_col:
     with kpi1:
         st.markdown(f"""
             <div class='glass-panel' style='text-align: center; padding: 15px;'>
-                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Predicted Average</p>
+                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Current Average</p>
                 <h3 style='color: #818cf8; font-size: 1.8rem; margin: 0;'>{avg_score:.1f}%</h3>
             </div>
         """, unsafe_allow_html=True)
@@ -244,10 +246,12 @@ with right_col:
             </div>
         """, unsafe_allow_html=True)
     with kpi3:
+        # Estimated improvement headroom toward a strong 90% target.
+        gain_potential = max(0.0, 90.0 - avg_score)
         st.markdown(f"""
             <div class='glass-panel' style='text-align: center; padding: 15px;'>
                 <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Gain Potential</p>
-                <h3 style='color: #10b981; font-size: 1.8rem; margin: 0;'>+6.2%</h3>
+                <h3 style='color: #10b981; font-size: 1.8rem; margin: 0;'>+{gain_potential:.1f}%</h3>
             </div>
         """, unsafe_allow_html=True)
 
@@ -360,9 +364,10 @@ EduPredict AI Automated System
                     prompt = f"""
                     Act as an elite CBSE Class 10 academic coordinator.
                     Student: {student_name} ({class_sec}, Roll: {roll_no}). Phase: {exam_phase}
-                    Telemetry: {attendance}% attendance, {assignments}% assignments.
+                    Telemetry: {attendance}% attendance, {assignments}% assignments, {participation}/10 participation, {behavior}/10 classroom conduct.
                     Scores (%): Math {scores['Maths']:.1f}, Sci {scores['Science']:.1f}, SST {scores['SST']:.1f}, Eng {scores['English']:.1f}.
-                    Provide an executive 4-bullet assessment covering grade trajectory and tactical intervention steps.
+                    Risk Profile: {risk_text}
+                    Provide an executive 4-bullet assessment covering grade trajectory, behavioral factors, weakest areas, and tactical intervention steps.
                     """
                     resp = client.models.generate_content(model="gemini-3.5-flash", contents=prompt)
                     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
