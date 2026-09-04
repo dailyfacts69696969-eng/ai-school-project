@@ -159,6 +159,34 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
+# --- BATCH CLASS CSV UPLOAD HUB ---
+with st.expander("📊 Batch Class CSV Upload & AI Classroom Analytics", expanded=False):
+    st.markdown("#### Upload Class Dataset for Bulk AI Insights & Outlier Detection")
+    uploaded_csv = st.file_uploader("Upload Class Dataset (CSV format)", type=["csv"], key="batch_csv_up")
+    if uploaded_csv:
+        df_batch = pd.read_csv(uploaded_csv)
+        st.dataframe(df_batch, use_container_width=True)
+        if st.button("🚀 Run AI Bulk Class Analysis", use_container_width=True):
+            with st.spinner("Analyzing bulk telemetry and identifying classroom outliers with Gemini..."):
+                try:
+                    csv_summary = df_batch.to_string(index=False)
+                    batch_prompt = f"""
+                    Act as an elite CBSE Class 10 principal and data analyst. 
+                    Analyze this classroom dataset containing student performance and behavioral telemetry:
+                    {csv_summary}
+                    Provide an executive bulk summary including:
+                    1. Overall class performance health and macro trends.
+                    2. Identification of high-risk or outlier students needing urgent intervention.
+                    3. Actionable recommendations for pedagogical adjustments.
+                    """
+                    batch_resp = client.models.generate_content(model="gemini-3.5-flash", contents=batch_prompt)
+                    st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
+                    st.markdown("#### 📑 Bulk Classroom Intelligence Report")
+                    st.markdown(batch_resp.text)
+                    st.markdown("</div>", unsafe_allow_html=True)
+                except Exception as e:
+                    st.error(f"Bulk Analysis Failed: {e}")
+
 st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
 # --- SPLIT SCREEN LAYOUT ---
