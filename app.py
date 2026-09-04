@@ -113,12 +113,21 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
                 
                 extracted_data = json.loads(raw_text)
                 
-                st.session_state.ext_name = extracted_data.get("name", "")
-                st.session_state.ext_roll = str(extracted_data.get("roll_no", ""))
-                st.session_state.ext_math = float(extracted_data.get("math", 0.0))
-                st.session_state.ext_sci = float(extracted_data.get("science", 0.0))
-                st.session_state.ext_sst = float(extracted_data.get("sst", 0.0))
-                st.session_state.ext_eng = float(extracted_data.get("english", 0.0))
+                st.session_state.ext_name = extracted_data.get("name", "") or ""
+                st.session_state.ext_roll = str(extracted_data.get("roll_no") or "")
+                
+                # Safe float parsing to prevent NoneType TypeError
+                m_val = extracted_data.get("math")
+                st.session_state.ext_math = float(m_val) if m_val is not None else 0.0
+                
+                s_val = extracted_data.get("science")
+                st.session_state.ext_sci = float(s_val) if s_val is not None else 0.0
+                
+                sst_val = extracted_data.get("sst")
+                st.session_state.ext_sst = float(sst_val) if sst_val is not None else 0.0
+                
+                e_val = extracted_data.get("english")
+                st.session_state.ext_eng = float(e_val) if e_val is not None else 0.0
                 
                 st.success("✅ Extraction Complete! Dashboard has been auto-populated.")
                 st.rerun()
@@ -163,18 +172,18 @@ with left_col:
     if skill_opt == "AI": max_skill_marks = 35 if "PT" in exam_phase else 50
     else: max_skill_marks = max_marks 
     
-    # Safe value calculations with bounds-clamping to prevent StreamlitValueAboveMaxError
+    # Safe value calculations with bounds-clamping and None protection
     raw_math = st.session_state.ext_math if st.session_state.ext_math is not None else float(int(max_marks*0.75))
-    val_math = min(raw_math, float(max_marks))
+    val_math = min(float(raw_math), float(max_marks))
 
     raw_sci = st.session_state.ext_sci if st.session_state.ext_sci is not None else float(int(max_marks*0.70))
-    val_sci = min(raw_sci, float(max_marks))
+    val_sci = min(float(raw_sci), float(max_marks))
 
     raw_sst = st.session_state.ext_sst if st.session_state.ext_sst is not None else float(int(max_marks*0.70))
-    val_sst = min(raw_sst, float(max_marks))
+    val_sst = min(float(raw_sst), float(max_marks))
 
     raw_eng = st.session_state.ext_eng if st.session_state.ext_eng is not None else float(int(max_marks*0.80))
-    val_eng = min(raw_eng, float(max_marks))
+    val_eng = min(float(raw_eng), float(max_marks))
         
     sc_math = st.number_input(f"Mathematics (Max: {max_marks})", 0.0, float(max_marks), val_math, step=0.5)
     sc_sci = st.number_input(f"Science (Max: {max_marks})", 0.0, float(max_marks), val_sci, step=0.5)
