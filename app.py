@@ -183,6 +183,15 @@ with right_col:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # --- NEW: VISUAL ANALYTICS BAR CHART ---
+    st.markdown("#### 📈 Subject Performance Breakdown")
+    chart_data = pd.DataFrame({
+        "Subject": list(scores.keys()),
+        "Score (%)": list(scores.values())
+    })
+    # Streamlit natively renders this as a beautiful interactive bar chart
+    st.bar_chart(chart_data, x="Subject", y="Score (%)", color="#6366f1", height=250)
+
     # --- AUTOMATED EMAIL ALERT SYSTEM ---
     if avg_score < 50:
         st.error("⚠️ Critical Alert: Student's overall average is below 50%. Immediate intervention required.")
