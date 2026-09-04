@@ -9,35 +9,34 @@ import json
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-# --- SMART BOARD LIGHT THEME & TOUCH CSS ---
+# --- CYBER-DARK THEME & CUSTOM CSS ---
 st.set_page_config(page_title="EduPredict AI", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <style>
-    .stApp { background-color: #f8fafc; color: #0f172a; font-family: 'Inter', sans-serif; }
+    .stApp { background-color: #030712; color: #f8fafc; font-family: 'Inter', sans-serif; }
     
     .stTextInput label p, .stNumberInput label p, .stSlider label p, .stRadio label p, .stSelectbox label p {
-        color: #475569 !important; font-weight: 600 !important; font-size: 1rem !important; text-transform: uppercase; letter-spacing: 0.05em;
+        color: #94a3b8 !important; font-weight: 500 !important; font-size: 0.85rem !important; text-transform: uppercase; letter-spacing: 0.05em;
     }
     
     .stTextInput input, .stNumberInput input, .stChatInput textarea {
-        background-color: #ffffff !important; color: #0f172a !important; border: 2px solid #cbd5e1 !important; border-radius: 12px !important; font-size: 1.1rem !important; padding: 12px !important;
+        background-color: #0f172a !important; color: #ffffff !important; border: 1px solid #1e293b !important; border-radius: 8px !important;
     }
     
     .stButton button, .stDownloadButton button {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-        color: #ffffff !important; border: none !important; border-radius: 12px !important;
-        font-weight: 700 !important; font-size: 1.2rem !important; padding: 1rem !important; letter-spacing: 0.025em; transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+        color: #ffffff !important; border: none !important; border-radius: 8px !important;
+        font-weight: 600 !important; letter-spacing: 0.025em; transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
     
     .glass-panel { 
-        background: #ffffff; border: 2px solid #e2e8f0; 
-        padding: 30px; border-radius: 20px; 
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(30, 41, 59, 0.8); 
+        padding: 24px; border-radius: 16px; backdrop-filter: blur(12px);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     }
     
-    h3, h4 { color: #0f172a !important; font-weight: 700 !important; }
-    hr { border-color: #cbd5e1; margin: 2.5rem 0; }
+    hr { border-color: #1e293b; margin: 2rem 0; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -84,7 +83,7 @@ with st.sidebar:
 # --- HEADER BAR ---
 col_head1, col_head2 = st.columns([3, 1])
 with col_head1:
-    st.markdown("### ⚡ EduPredict AI <span style='color:#2563eb; font-size: 1.1rem;'>// Enterprise Classroom Intelligence</span>", unsafe_allow_html=True)
+    st.markdown("### ⚡ EduPredict AI <span style='color:#6366f1; font-size: 1rem;'>// Enterprise Classroom Intelligence</span>", unsafe_allow_html=True)
 with col_head2:
     exam_phase = st.selectbox("Active Evaluation Phase", ["PT-1", "Half Yearly", "PT-2", "Preboards"])
     max_marks = 40 if "PT" in exam_phase else 80
@@ -136,7 +135,7 @@ left_col, right_col = st.columns([4, 8], gap="large")
 
 with left_col:
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color:#0f172a; margin-bottom: 1rem;'>👤 Student Identity Credentials</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>👤 Student Identity Credentials</h4>", unsafe_allow_html=True)
     # Connected directly to session state
     student_name = st.text_input("Full Name", value=st.session_state.ext_name, placeholder="e.g., Aarav Sharma")
     r_col1, r_col2 = st.columns(2)
@@ -153,7 +152,7 @@ with left_col:
     st.markdown("</div><br>", unsafe_allow_html=True)
 
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color:#0f172a; margin-bottom: 1rem;'>🏫 Behavioral Telemetry</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>🏫 Behavioral Telemetry</h4>", unsafe_allow_html=True)
     attendance = st.slider("Attendance Rate (%)", 0, 100, 88)
     assignments = st.slider("Assignment Completion (%)", 0, 100, 92)
     participation = st.slider("Class Participation Score", 1, 10, 8)
@@ -161,7 +160,7 @@ with left_col:
     st.markdown("</div><br>", unsafe_allow_html=True)
 
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color:#0f172a; margin-bottom: 1rem;'>📚 Subject Score Matrix</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#f8fafc; font-size: 1rem; margin-bottom: 1rem;'>📚 Subject Score Matrix</h4>", unsafe_allow_html=True)
     lang_opt = st.radio("Language Elective", ["Hindi", "Sanskrit", "French"], horizontal=True)
     skill_opt = st.radio("Skill Elective", ["Financial Literacy", "AI", "Computer"], horizontal=True)
     
@@ -194,25 +193,25 @@ with right_col:
     kpi1, kpi2, kpi3 = st.columns(3)
     with kpi1:
         st.markdown(f"""
-            <div class='glass-panel' style='text-align: center; padding: 20px;'>
-                <p style='color: #64748b; font-size: 0.85rem; font-weight: 700; text-transform: uppercase;'>Predicted Average</p>
-                <h3 style='color: #2563eb; font-size: 2.2rem; margin: 0;'>{avg_score:.1f}%</h3>
+            <div class='glass-panel' style='text-align: center; padding: 15px;'>
+                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Predicted Average</p>
+                <h3 style='color: #818cf8; font-size: 1.8rem; margin: 0;'>{avg_score:.1f}%</h3>
             </div>
         """, unsafe_allow_html=True)
     with kpi2:
         risk_color = "#10b981" if avg_score > 75 and attendance > 75 else "#ef4444"
         risk_text = "LOW RISK 🟢" if avg_score > 75 and attendance > 75 else "HIGH RISK 🔴"
         st.markdown(f"""
-            <div class='glass-panel' style='text-align: center; padding: 20px;'>
-                <p style='color: #64748b; font-size: 0.85rem; font-weight: 700; text-transform: uppercase;'>Risk Profile</p>
-                <h3 style='color: {risk_color}; font-size: 1.5rem; margin-top: 5px;'>{risk_text}</h3>
+            <div class='glass-panel' style='text-align: center; padding: 15px;'>
+                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Risk Profile</p>
+                <h3 style='color: {risk_color}; font-size: 1.2rem; margin-top: 5px;'>{risk_text}</h3>
             </div>
         """, unsafe_allow_html=True)
     with kpi3:
         st.markdown(f"""
-            <div class='glass-panel' style='text-align: center; padding: 20px;'>
-                <p style='color: #64748b; font-size: 0.85rem; font-weight: 700; text-transform: uppercase;'>Gain Potential</p>
-                <h3 style='color: #10b981; font-size: 2.2rem; margin: 0;'>+6.2%</h3>
+            <div class='glass-panel' style='text-align: center; padding: 15px;'>
+                <p style='color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;'>Gain Potential</p>
+                <h3 style='color: #10b981; font-size: 1.8rem; margin: 0;'>+6.2%</h3>
             </div>
         """, unsafe_allow_html=True)
 
@@ -224,7 +223,7 @@ with right_col:
         "Subject": list(scores.keys()),
         "Score (%)": list(scores.values())
     })
-    st.bar_chart(chart_data, x="Subject", y="Score (%)", color="#2563eb", height=250)
+    st.bar_chart(chart_data, x="Subject", y="Score (%)", color="#6366f1", height=250)
 
     # --- AUTOMATED EMAIL ALERT SYSTEM ---
     if avg_score < 50:
