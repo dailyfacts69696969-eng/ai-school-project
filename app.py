@@ -9,11 +9,22 @@ import json
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-# --- CYBER-DARK THEME & CUSTOM CSS ---
+# --- CYBER-DARK THEME & ANIMATED CSS ---
 st.set_page_config(page_title="EduPredict AI", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <style>
-    .stApp { background-color: #030712; color: #f8fafc; font-family: 'Inter', sans-serif; }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulseGlow {
+        0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
+        50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6); }
+        100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
+    }
+
+    .stApp { background-color: #030712; color: #f8fafc; font-family: 'Inter', sans-serif; animation: fadeIn 0.8s ease-out; }
     
     .stTextInput label p, .stNumberInput label p, .stSlider label p, .stRadio label p, .stSelectbox label p {
         color: #94a3b8 !important; font-weight: 500 !important; font-size: 0.85rem !important; text-transform: uppercase; letter-spacing: 0.05em;
@@ -21,19 +32,36 @@ st.markdown("""
     
     .stTextInput input, .stNumberInput input, .stChatInput textarea {
         background-color: #0f172a !important; color: #ffffff !important; border: 1px solid #1e293b !important; border-radius: 8px !important;
+        transition: all 0.3s ease;
+    }
+    
+    .stTextInput input:focus, .stNumberInput input:focus {
+        border-color: #6366f1 !important; box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
     }
     
     .stButton button, .stDownloadButton button {
         background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
         color: #ffffff !important; border: none !important; border-radius: 8px !important;
-        font-weight: 600 !important; letter-spacing: 0.025em; transition: all 0.3s ease;
+        font-weight: 600 !important; letter-spacing: 0.025em; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    
+    .stButton button:hover {
+        transform: translateY(-2px);
+        animation: pulseGlow 1.5s infinite;
     }
     
     .glass-panel { 
         background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(30, 41, 59, 0.8); 
         padding: 24px; border-radius: 16px; backdrop-filter: blur(12px);
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        animation: fadeIn 0.6s ease-out;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .glass-panel:hover {
+        border-color: rgba(99, 102, 241, 0.4);
+        box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.15);
     }
     
     hr { border-color: #1e293b; margin: 2rem 0; }
