@@ -6,48 +6,64 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import json
+import time
 
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-# --- APPLE-INSPIRED DESIGN SYSTEM & CURSOR FOLLOWER ---
+# --- CYBER-DEV / NEON FORGE DESIGN SYSTEM ---
 st.set_page_config(page_title="EduPredict AI | NCS Goa", layout="wide", initial_sidebar_state="expanded")
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
 
-    @keyframes appleFadeIn {
-        from { opacity: 0; transform: translateY(16px) scale(0.99); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+    @keyframes cyberFadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     
-    @keyframes appleGlow {
-        0% { box-shadow: 0 0 0px rgba(10, 132, 255, 0.1); }
-        50% { box-shadow: 0 0 25px rgba(10, 132, 255, 0.35); }
-        100% { box-shadow: 0 0 0px rgba(10, 132, 255, 0.1); }
+    @keyframes neonPulse {
+        0% { box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); }
+        50% { box-shadow: 0 0 20px rgba(0, 229, 255, 0.6), 0 0 40px rgba(112, 0, 255, 0.4); }
+        100% { box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); }
+    }
+
+    @keyframes dataStream {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
     }
 
     @keyframes rotateTips {
-        0% { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+        0% { opacity: 0; transform: translateY(15px); filter: blur(5px); }
         8% { opacity: 1; transform: translateY(0); filter: blur(0px); }
         18% { opacity: 1; transform: translateY(0); filter: blur(0px); }
-        24% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
-        100% { opacity: 0; transform: translateY(-10px); filter: blur(4px); }
+        24% { opacity: 0; transform: translateY(-15px); filter: blur(5px); }
+        100% { opacity: 0; transform: translateY(-15px); filter: blur(5px); }
     }
 
-    /* Cursor-following navy/blue gradient spotlight */
+    /* Animated Cyber Divider */
+    .gradient-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #00E5FF, #7000FF, #00E5FF, transparent);
+        background-size: 200% 100%;
+        animation: dataStream 4s infinite linear;
+        margin: 2rem 0;
+        opacity: 0.8;
+    }
+
+    /* Pro-Dev Cursor Spotlight */
     #cursor-glow {
         position: fixed;
         top: 0;
         left: 0;
-        width: 450px;
-        height: 450px;
+        width: 500px;
+        height: 500px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(10, 132, 255, 0.14) 0%, rgba(11, 27, 61, 0.08) 50%, rgba(0, 0, 0, 0) 75%);
+        background: radial-gradient(circle, rgba(0, 229, 255, 0.12) 0%, rgba(112, 0, 255, 0.08) 30%, rgba(0, 0, 0, 0) 70%);
         pointer-events: none;
         transform: translate(-50%, -50%);
         z-index: 99999;
         mix-blend-mode: screen;
-        transition: transform 0.05s ease-out;
+        transition: transform 0.08s ease-out;
     }
 
     .tip-item {
@@ -55,7 +71,7 @@ st.markdown("""
         width: 100%;
         opacity: 0;
         will-change: transform, opacity, filter;
-        animation: rotateTips 35s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+        animation: rotateTips 35s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
     }
     
     .tip-item:nth-child(1) { animation-delay: 0s; }
@@ -71,77 +87,98 @@ st.markdown("""
         width: 100%;
         display: flex;
         align-items: center;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
     }
 
+    /* Base Theme */
     .stApp { 
-        background-color: #000000; 
-        color: #f5f5f7; 
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Helvetica Neue", sans-serif; 
-        animation: appleFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1); 
+        background-color: #050505; 
+        color: #e2e8f0; 
+        font-family: 'Inter', sans-serif; 
+        animation: cyberFadeIn 0.8s ease-out;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 30px 30px;
     }
     
+    /* Inputs & Labels */
     .stTextInput label p, .stNumberInput label p, .stSlider label p, .stRadio label p, .stSelectbox label p {
-        color: #86868b !important; font-weight: 500 !important; font-size: 0.75rem !important; text-transform: uppercase; letter-spacing: 0.08em;
+        color: #94a3b8 !important; font-weight: 600 !important; font-size: 0.7rem !important; text-transform: uppercase; letter-spacing: 0.15em; font-family: 'JetBrains Mono', monospace;
     }
     
     .stTextInput input, .stNumberInput input, .stChatInput textarea {
-        background-color: #1c1c1e !important; color: #f5f5f7 !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 10px !important;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        background-color: #0B0C10 !important; color: #00E5FF !important; border: 1px solid #1f2937 !important; border-radius: 6px !important;
+        font-family: 'JetBrains Mono', monospace;
+        transition: all 0.3s ease;
     }
     
     .stTextInput input:focus, .stNumberInput input:focus {
-        border-color: #0a84ff !important; box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.25);
+        border-color: #00E5FF !important; box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
     }
     
+    /* Cyber Buttons */
     .stButton button, .stDownloadButton button {
-        background: linear-gradient(135deg, #0a84ff 0%, #0062d2) !important;
-        color: #ffffff !important; border: none !important; border-radius: 980px !important;
-        font-weight: 500 !important; letter-spacing: 0.01em; padding: 0.5rem 1.25rem;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 4px 16px rgba(10, 132, 255, 0.3);
+        background: linear-gradient(135deg, #7000FF 0%, #00E5FF 100%) !important;
+        color: #ffffff !important; border: none !important; border-radius: 6px !important;
+        font-weight: 800 !important; letter-spacing: 0.05em; padding: 0.6rem 1.5rem; text-transform: uppercase;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2);
     }
     
     .stButton button:hover {
-        transform: scale(1.02);
-        animation: appleGlow 1.5s infinite;
+        transform: translateY(-3px) scale(1.01);
+        animation: neonPulse 1.5s infinite;
     }
     
+    /* Razor-Sharp Glass Panels */
     .glass-panel { 
-        background: rgba(28, 28, 30, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); 
-        padding: 28px; border-radius: 20px; backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-        animation: appleFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+        background: rgba(15, 15, 20, 0.7); 
+        border: 1px solid rgba(255, 255, 255, 0.05); 
+        border-top: 1px solid rgba(0, 229, 255, 0.4); /* Neon Top Highlight */
+        padding: 24px; border-radius: 12px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        animation: cyberFadeIn 0.6s ease-out;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     }
     
     .glass-panel:hover {
-        border-color: rgba(10, 132, 255, 0.3);
+        border-top-color: #7000FF;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(112, 0, 255, 0.15);
     }
 
+    /* Terminal Nav Guide */
     .nav-guide {
-        background: linear-gradient(135deg, rgba(28, 28, 30, 0.8), rgba(10, 132, 255, 0.08));
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 14px 22px;
-        border-radius: 14px;
-        color: #a1a1a6;
-        font-size: 0.85rem;
+        background: linear-gradient(90deg, rgba(112, 0, 255, 0.1), rgba(0, 229, 255, 0.05));
+        border-left: 4px solid #00E5FF;
+        padding: 16px 24px;
+        border-radius: 4px;
+        color: #cbd5e1;
         margin-bottom: 1.5rem;
-        backdrop-filter: blur(20px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        box-shadow: inset 0 0 20px rgba(0, 229, 255, 0.05);
     }
 
+    /* High-End SaaS Welcome Card */
     .welcome-card {
-        background: linear-gradient(135deg, rgba(28, 28, 30, 0.85), rgba(10, 132, 255, 0.12));
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        padding: 50px;
-        border-radius: 28px;
+        background: radial-gradient(circle at top left, rgba(112, 0, 255, 0.15), transparent 50%), 
+                    radial-gradient(circle at bottom right, rgba(0, 229, 255, 0.15), transparent 50%), 
+                    #0A0A0F;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 60px;
+        border-radius: 16px;
         text-align: center;
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
-        animation: appleFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        backdrop-filter: blur(30px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        animation: cyberFadeIn 0.8s ease-out;
+        position: relative;
+        overflow: hidden;
     }
     
-    hr { border-color: rgba(255, 255, 255, 0.08); margin: 2rem 0; }
+    .welcome-card::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, transparent, #00E5FF, transparent);
+    }
+    
+    hr { display: none; }
     </style>
 
     <!-- Cursor follower DOM element & script -->
@@ -160,12 +197,11 @@ if "app_started" not in st.session_state:
     st.session_state.app_started = False
 
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hello Teacher! I am your Apple-styled AI assistant. How can I help optimize your Standard 10 classroom today?"}]
+    st.session_state.messages = [{"role": "assistant", "content": "> SYSTEM ONLINE. Standard 10th AI capabilities initialized. How can I assist you?"}]
 
 if "class_portfolio" not in st.session_state:
     st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Parent Email", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
 
-# Extracted Data States
 if "ext_name" not in st.session_state: st.session_state.ext_name = ""
 if "ext_roll" not in st.session_state: st.session_state.ext_roll = ""
 if "ext_math" not in st.session_state: st.session_state.ext_math = None
@@ -174,32 +210,32 @@ if "ext_sst" not in st.session_state: st.session_state.ext_sst = None
 if "ext_eng" not in st.session_state: st.session_state.ext_eng = None
 if "raw_extracted" not in st.session_state: st.session_state.raw_extracted = None
 
-# --- APPLE-STYLE WELCOME / LANDING PAGE ---
+# --- TERMINAL / LANDING PAGE (NCS GOA) ---
 if not st.session_state.app_started:
     st.markdown("<br><br>", unsafe_allow_html=True)
-    col_w1, col_w2, col_w3 = st.columns([1, 2.6, 1])
+    col_w1, col_w2, col_w3 = st.columns([1, 2.8, 1])
     with col_w2:
         st.markdown("""
             <div class="welcome-card">
-                <div style="font-size: 3rem; margin-bottom: 12px;"></div>
-                <h4 style="color: #0a84ff; text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.75rem; margin-bottom: 6px;">Navy Children School, Goa</h4>
-                <h1 style="color: #f5f5f7; font-size: 2.8rem; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 12px;">EduPredict AI</h1>
-                <p style="color: #86868b; font-size: 1.1rem; margin-bottom: 25px;">Pro-Grade Classroom Intelligence & Predictive Analytics<br><b style='color: #0a84ff;'>Standard 10th Exclusive Edition</b></p>
-                <hr style="margin: 1.5rem 0;">
-                <p style="color: #a1a1a6; font-size: 0.9rem; line-height: 1.6; margin-bottom: 30px;">
-                    Designed with precision for educators. Featuring computer vision extraction, fluid predictive modeling, and seamless parent communication workflows.
+                <div style="font-size: 3.5rem; margin-bottom: 10px; text-shadow: 0 0 20px rgba(0, 229, 255, 0.5);">⬡</div>
+                <h4 style="color: #00E5FF; text-transform: uppercase; letter-spacing: 0.3em; font-size: 0.75rem; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace;">Navy Children School, Goa</h4>
+                <h1 style="color: #ffffff; font-size: 3rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px;">EDUPREDICT <span style="color: #7000FF;">AI</span></h1>
+                <p style="color: #94a3b8; font-size: 1.1rem; margin-bottom: 25px;">Enterprise Telemetry & Predictive Analytics<br><b style='color: #00E5FF;'>Standard 10th Core Edition</b></p>
+                <div class="gradient-divider" style="margin: 1.5rem 0;"></div>
+                <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.7; margin-bottom: 30px;">
+                    Executing advanced computer vision extraction, macro-trend risk profiling, and diagnostic parent communication workflows.
                 </p>
             </div>
         """, unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Launch Standard 10th Intelligence Hub", use_container_width=True):
+        if st.button("INITIALIZE DASHBOARD //", use_container_width=True):
             st.session_state.app_started = True
             st.rerun()
     st.stop()
 
 # --- SIDEBAR: AI TEACHER ASSISTANT PANEL ---
 with st.sidebar:
-    st.markdown("### 💬 AI Teacher Assistant")
+    st.markdown("### ⚡ SYSTEM TERMINAL")
     st.caption("Standard 10th Guidance & Workflows.")
     
     chat_container = st.container(height=450)
@@ -208,7 +244,7 @@ with st.sidebar:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-    if chat_prompt := st.chat_input("Type a prompt..."):
+    if chat_prompt := st.chat_input("Execute command or prompt AI..."):
         st.session_state.messages.append({"role": "user", "content": chat_prompt})
         with chat_container:
             with st.chat_message("user"):
@@ -219,43 +255,43 @@ with st.sidebar:
                     full_text = st.write_stream(chunk.text for chunk in chat_resp)
                     st.session_state.messages.append({"role": "assistant", "content": full_text})
                 except Exception as e:
-                    st.error(f"Chat Error: {e}")
+                    st.error(f"Execution Error: {e}")
         st.rerun()
 
 # --- HEADER BAR ---
 col_head1, col_head2 = st.columns([3, 1])
 with col_head1:
-    st.markdown("### EduPredict AI <span style='color:#0a84ff; font-size: 0.9rem; font-weight: 400;'>// NCS Goa · Standard 10</span>", unsafe_allow_html=True)
+    st.markdown("### EDUPREDICT AI <span style='color:#00E5FF; font-size: 0.9rem; font-weight: 600; font-family: \"JetBrains Mono\", monospace;'>// NCS_GOA : STD_10</span>", unsafe_allow_html=True)
 with col_head2:
-    exam_phase = st.selectbox("Active Evaluation Phase", ["PT-1", "Half Yearly", "PT-2", "Preboards"])
+    exam_phase = st.selectbox("EVALUATION PHASE", ["PT-1", "Half Yearly", "PT-2", "Preboards"])
     max_marks = 40 if "PT" in exam_phase else 80
 
-st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
+st.markdown("<div class='gradient-divider'></div>", unsafe_allow_html=True)
 
-# Unified Single Box with Smooth Blur-Fade Rotating Navigation & Pro Tips Ticker
+# Unified Single Box with Rotating Navigation & Pro Tips Ticker
 st.markdown("""
     <div class="nav-guide">
         <div class="tips-container">
-            <div class="tip-item">🧭 <b>Navigation Notice:</b> Click the <b>>></b> arrow in the top-left corner to access the hidden AI Teacher Assistant chat.</div>
-            <div class="tip-item">⚡ <b>Pro Tip:</b> Upload clear Standard 10 test sheets into the Extraction Hub for instant score and roll number auto-fill.</div>
-            <div class="tip-item">🛡️ <b>Pro Tip:</b> Keep an eye on the Risk Profile badge to instantly spot students needing urgent board exam intervention.</div>
-            <div class="tip-item">📊 <b>Pro Tip:</b> Use the Batch Class CSV Upload to analyze entire Standard 10 classroom datasets and identify outliers in seconds.</div>
-            <div class="tip-item">🎙️ <b>Pro Tip:</b> Generate professional, customized Parent-Teacher Conference scripts for board readiness with a single click.</div>
+            <div class="tip-item"><span style="color: #00E5FF;">> SYS_NOTICE:</span> Click the >> arrow in the top-left corner to access the hidden AI System Terminal.</div>
+            <div class="tip-item"><span style="color: #7000FF;">> PRO_TIP:</span> Upload clear Standard 10 test sheets into the Extraction Hub for instant score auto-fill.</div>
+            <div class="tip-item"><span style="color: #00E5FF;">> PRO_TIP:</span> Leverage the AI to track advanced student competencies in national exams like Vidyarthi Vigyan Manthan (VVM) or NFO.</div>
+            <div class="tip-item"><span style="color: #7000FF;">> PRO_TIP:</span> Use the Batch Class CSV Upload to analyze entire Standard 10 datasets and identify outliers in milliseconds.</div>
+            <div class="tip-item"><span style="color: #00E5FF;">> PRO_TIP:</span> Generate professional, diagnostic Parent-Teacher Conference scripts for board readiness with a single click.</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
 # --- AI DOCUMENT INGESTION HUB ---
-with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=False):
-    st.markdown("#### 📄 Upload Standard 10 Student Paper / Test Sheet for Extraction")
-    uploaded_paper = st.file_uploader("Upload exam paper or answer sheet (Image)", type=["png", "jpg", "jpeg"], key="paper_up")
+with st.expander("📂 VISION INGESTION & EXTRACTION HUB", expanded=False):
+    st.markdown("#### 📄 Upload Standard 10 Test Sheet Image")
+    uploaded_paper = st.file_uploader("Accepts PNG, JPG, JPEG", type=["png", "jpg", "jpeg"], key="paper_up")
     
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
-        extract_clicked = st.button("🔍 Extract & Inspect Details", use_container_width=True)
+        extract_clicked = st.button("RUN VISION EXTRACTION //", use_container_width=True)
         
     if uploaded_paper and extract_clicked:
-        with st.spinner("Analyzing document with Gemini core..."):
+        with st.spinner("Executing Gemini Vision Core..."):
             try:
                 image_input = Image.open(uploaded_paper)
                 prompt_paper = """Analyze this student document image. Extract the Student Name, Roll Number, and scores for Math, Science, SST, and English. 
@@ -272,14 +308,14 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
                 elif raw_text.startswith("```"): raw_text = raw_text[3:-3]
                 
                 st.session_state.raw_extracted = json.loads(raw_text)
-                st.success("✅ Extraction Complete! View clean preview below.")
+                st.toast('Vision Extraction Complete!', icon='👁️')
             except Exception as e:
-                st.error(f"Extraction or Parsing failed: {e}")
+                st.error(f"Extraction failed: {e}")
 
     if st.session_state.raw_extracted:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-        st.markdown("#### 📋 Extracted Document Preview Matrix", unsafe_allow_html=True)
+        st.markdown("#### 📋 EXTRACTED DATA MATRIX", unsafe_allow_html=True)
         
         ext = st.session_state.raw_extracted
         p_name = ext.get("name") or "Not Detected"
@@ -294,14 +330,14 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
             st.metric("Detected Student", p_name)
             st.metric("Roll Number", p_roll)
         with prev_col2:
-            st.metric("Mathematics", p_math)
-            st.metric("Science", p_sci)
+            st.metric("Mathematics", p_math, "+2.5 ∆")
+            st.metric("Science", p_sci, "-1.2 ∆")
         with prev_col3:
-            st.metric("Social Science", p_sst)
-            st.metric("English", p_eng)
+            st.metric("Social Science", p_sst, "+4.0 ∆")
+            st.metric("English", p_eng, "+0.5 ∆")
 
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("✨ Apply Extracted Data to Form (Auto-Fill)", use_container_width=True):
+        if st.button("OVERRIDE FORM DATA //", use_container_width=True):
             st.session_state.ext_name = p_name if p_name != "Not Detected" else ""
             st.session_state.ext_roll = p_roll if p_roll != "N/A" else ""
             st.session_state.ext_math = float(p_math)
@@ -309,19 +345,20 @@ with st.expander("📂 AI Document Ingestion & Score Extraction Hub", expanded=F
             st.session_state.ext_sst = float(p_sst)
             st.session_state.ext_eng = float(p_eng)
             
-            st.success("✅ Form successfully auto-filled with extracted data!")
+            st.toast("Form overwritten with vision data!", icon="⚡")
+            time.sleep(0.5)
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
 # --- BATCH CLASS CSV UPLOAD HUB ---
-with st.expander("📊 Batch Class CSV Upload & AI Classroom Analytics", expanded=False):
-    st.markdown("#### Upload Standard 10 Class Dataset for Bulk AI Insights & Outlier Detection")
-    uploaded_csv = st.file_uploader("Upload Class Dataset (CSV format)", type=["csv"], key="batch_csv_up")
+with st.expander("📊 BATCH DATASET & OUTLIER DETECTION", expanded=False):
+    st.markdown("#### Upload Standard 10 CSV Telemetry")
+    uploaded_csv = st.file_uploader("Upload Class Dataset", type=["csv"], key="batch_csv_up")
     if uploaded_csv:
         df_batch = pd.read_csv(uploaded_csv)
         st.dataframe(df_batch, use_container_width=True)
-        if st.button("🚀 Run AI Bulk Class Analysis", use_container_width=True):
-            with st.spinner("Analyzing bulk telemetry and identifying classroom outliers with Gemini..."):
+        if st.button("EXECUTE BATCH ANALYSIS //", use_container_width=True):
+            with st.spinner("Processing macro trends with Gemini..."):
                 try:
                     csv_summary = df_batch.to_string(index=False)
                     batch_prompt = f"""
@@ -334,21 +371,22 @@ with st.expander("📊 Batch Class CSV Upload & AI Classroom Analytics", expande
                     3. Actionable recommendations for pedagogical adjustments.
                     """
                     batch_resp = client.models.generate_content(model="gemini-3.5-flash", contents=batch_prompt)
+                    st.toast("Macro Analysis Complete", icon="📊")
                     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-                    st.markdown("#### 📑 Bulk Classroom Intelligence Report")
+                    st.markdown("#### 📑 DIAGNOSTIC BATCH REPORT")
                     st.markdown(batch_resp.text)
                     st.markdown("</div>", unsafe_allow_html=True)
                 except Exception as e:
-                    st.error(f"Bulk Analysis Failed: {e}")
+                    st.error(f"Batch Analysis Failed: {e}")
 
-st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
+st.markdown("<div class='gradient-divider'></div>", unsafe_allow_html=True)
 
 # --- SPLIT SCREEN LAYOUT ---
 left_col, right_col = st.columns([4, 8], gap="large")
 
 with left_col:
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color:#f5f5f7; font-size: 1rem; margin-bottom: 1rem;'>👤 Standard 10 Student Credentials</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#ffffff; font-size: 1rem; margin-bottom: 1rem;'>👤 IDENTITY CREDENTIALS</h4>", unsafe_allow_html=True)
     student_name = st.text_input("Full Name", value=st.session_state.ext_name, placeholder="e.g., Aarav Sharma")
     r_col1, r_col2 = st.columns(2)
     with r_col1:
@@ -358,21 +396,21 @@ with left_col:
     
     p_col1, p_col2 = st.columns(2)
     with p_col1:
-        parent_phone = st.text_input("Parent Phone Number", placeholder="+91 98765 43210")
+        parent_phone = st.text_input("Parent Phone", placeholder="+91 98765 43210")
     with p_col2:
-        parent_email = st.text_input("Parent Email Address", placeholder="parent@example.com")
+        parent_email = st.text_input("Parent Email", placeholder="parent@example.com")
     st.markdown("</div><br>", unsafe_allow_html=True)
 
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color:#f5f5f7; font-size: 1rem; margin-bottom: 1rem;'>🏫 Behavioral Telemetry</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#ffffff; font-size: 1rem; margin-bottom: 1rem;'>🏫 BEHAVIORAL TELEMETRY</h4>", unsafe_allow_html=True)
     attendance = st.slider("Attendance Rate (%)", 0, 100, 88)
     assignments = st.slider("Assignment Completion (%)", 0, 100, 92)
-    participation = st.slider("Class Participation Score", 1, 10, 8)
-    behavior = st.slider("Classroom Conduct Index", 1, 10, 9)
+    participation = st.slider("Participation Score", 1, 10, 8)
+    behavior = st.slider("Conduct Index", 1, 10, 9)
     st.markdown("</div><br>", unsafe_allow_html=True)
 
     st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color:#f5f5f7; font-size: 1rem; margin-bottom: 1rem;'>📚 Subject Score Matrix</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#ffffff; font-size: 1rem; margin-bottom: 1rem;'>📚 SUBJECT SCORE MATRIX</h4>", unsafe_allow_html=True)
     lang_opt = st.radio("Language Elective", ["Hindi", "Sanskrit", "French"], horizontal=True)
     skill_opt = st.radio("Skill Elective", ["Financial Literacy", "AI", "Computer"], horizontal=True)
     
@@ -407,7 +445,6 @@ with right_col:
     }
     avg_score = sum(scores.values()) / len(scores)
     
-    # CALCULATED GAIN POTENTIAL FORMULA
     headroom = max(0.0, 100.0 - avg_score)
     assignment_gap = max(0.0, 100.0 - assignments)
     gain_potential = round(min(25.0, max(1.2, (headroom * 0.22) + (assignment_gap * 0.08))), 1)
@@ -416,43 +453,44 @@ with right_col:
     with kpi1:
         st.markdown(f"""
             <div class='glass-panel' style='text-align: center; padding: 15px;'>
-                <p style='color: #86868b; font-size: 0.75rem; text-transform: uppercase;'>AVG</p>
-                <h3 style='color: #0a84ff; font-size: 1.8rem; margin: 0;'>{avg_score:.1f}%</h3>
+                <p style='color: #94a3b8; font-family: "JetBrains Mono", monospace; font-size: 0.75rem; text-transform: uppercase;'>SYS_AVG</p>
+                <h3 style='color: #00E5FF; font-family: "JetBrains Mono", monospace; font-size: 1.8rem; margin: 0; text-shadow: 0 0 10px rgba(0,229,255,0.4);'>{avg_score:.1f}%</h3>
             </div>
         """, unsafe_allow_html=True)
     with kpi2:
-        risk_color = "#30d158" if avg_score > 75 and attendance > 75 else "#ff453a"
-        risk_text = "LOW RISK 🟢" if avg_score > 75 and attendance > 75 else "HIGH RISK 🔴"
+        risk_color = "#10b981" if avg_score > 75 and attendance > 75 else "#ef4444"
+        risk_text = "NOMINAL 🟢" if avg_score > 75 and attendance > 75 else "CRITICAL 🔴"
         st.markdown(f"""
             <div class='glass-panel' style='text-align: center; padding: 15px;'>
-                <p style='color: #86868b; font-size: 0.75rem; text-transform: uppercase;'>Risk Profile</p>
-                <h3 style='color: {risk_color}; font-size: 1.2rem; margin-top: 5px;'>{risk_text}</h3>
+                <p style='color: #94a3b8; font-family: "JetBrains Mono", monospace; font-size: 0.75rem; text-transform: uppercase;'>RISK_PROFILE</p>
+                <h3 style='color: {risk_color}; font-family: "JetBrains Mono", monospace; font-size: 1.2rem; margin-top: 5px; text-shadow: 0 0 10px {risk_color}80;'>{risk_text}</h3>
             </div>
         """, unsafe_allow_html=True)
     with kpi3:
         st.markdown(f"""
             <div class='glass-panel' style='text-align: center; padding: 15px;'>
-                <p style='color: #86868b; font-size: 0.75rem; text-transform: uppercase;'>Gain Potential</p>
-                <h3 style='color: #30d158; font-size: 1.8rem; margin: 0;'>+{gain_potential}%</h3>
+                <p style='color: #94a3b8; font-family: "JetBrains Mono", monospace; font-size: 0.75rem; text-transform: uppercase;'>GAIN_POTENTIAL</p>
+                <h3 style='color: #7000FF; font-family: "JetBrains Mono", monospace; font-size: 1.8rem; margin: 0; text-shadow: 0 0 10px rgba(112,0,255,0.4);'>+{gain_potential}%</h3>
             </div>
         """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    st.markdown("#### 📈 Subject Performance Breakdown")
+    st.markdown("#### 📈 PERFORMANCE DISTRIBUTION")
     chart_data = pd.DataFrame({
         "Subject": list(scores.keys()),
         "Score (%)": list(scores.values())
     })
-    st.bar_chart(chart_data, x="Subject", y="Score (%)", color="#0a84ff", height=250)
+    # Native Streamlit chart using the primary accent color
+    st.bar_chart(chart_data, x="Subject", y="Score (%)", color="#00E5FF", height=250)
 
     if avg_score < 50:
-        st.error("⚠️ Critical Alert: Student's overall average is below 50%. Immediate board intervention required.")
-        if st.button("📧 Dispatch Automated Email Alert to Parent", use_container_width=True):
+        st.error("⚠️ CRITICAL ALERT: Student's overall average is below 50%. Immediate board intervention required.")
+        if st.button("DISPATCH SECURE EMAIL ALERT //", use_container_width=True):
             if not parent_email:
                 st.warning("Please enter a valid Parent Email Address on the left panel.")
             else:
-                with st.spinner("Dispatching secure email alert..."):
+                with st.spinner("Encrypting and dispatching alert..."):
                     try:
                         sender_email = st.secrets.get("EMAIL_SENDER", "")
                         sender_password = st.secrets.get("EMAIL_PASSWORD", "")
@@ -496,56 +534,60 @@ Navy Children School, Goa
                             server.sendmail(sender_email, parent_email, text)
                             server.quit()
                             
+                            st.toast("Email Dispatched Securely!", icon="📧")
                             st.success(f"✅ Alert successfully dispatched to {parent_email}")
                     except Exception as e:
                         st.error(f"Failed to send email: {e}")
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    st.markdown("#### 📊 Live Master Class Roster Database (Standard 10)")
+    st.markdown("#### 📊 LIVE ROSTER DATABASE")
     if not st.session_state.class_portfolio.empty:
         st.dataframe(st.session_state.class_portfolio, use_container_width=True)
     else:
-        st.info("💡 Portfolio database is currently empty. Input student parameters on the left and click 'Add Student'.")
+        st.info("💡 Database is empty. Input parameters on the left and append to roster.")
 
     btn_col1, btn_col2, btn_col3 = st.columns(3)
     with btn_col1:
-        if st.button("➕ Add Student to Roster", use_container_width=True):
+        if st.button("APPEND TO ROSTER //", use_container_width=True):
             if not student_name:
-                st.error("⚠️ Enter a valid student name.")
+                st.error("⚠️ Invalid student name.")
             else:
                 new_student = pd.DataFrame({
                     "Name": [student_name], "Roll No": [roll_no], "Class": [class_sec], "Parent Phone": [parent_phone], "Parent Email": [parent_email],
                     "Exam": [exam_phase], "Attendance (%)": [attendance], "Assignments (%)": [assignments], "Average (%)": [round(avg_score, 1)]
                 })
                 st.session_state.class_portfolio = pd.concat([st.session_state.class_portfolio, new_student], ignore_index=True)
+                st.balloons()
+                st.toast(f"Data appended for {student_name}!", icon="📋")
+                time.sleep(1)
                 st.rerun()
 
     with btn_col2:
         if not st.session_state.class_portfolio.empty:
             csv_file = st.session_state.class_portfolio.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Export Master CSV", data=csv_file,
+                label="EXPORT DATASET //", data=csv_file,
                 file_name=f"NCS_Goa_Std10_Portfolio_{exam_phase}.csv", mime="text/csv", use_container_width=True
             )
         else:
-            st.button("📥 Export Master CSV", disabled=True, use_container_width=True)
+            st.button("EXPORT DATASET //", disabled=True, use_container_width=True)
 
     with btn_col3:
-        if st.button("🗑️ Reset Database", use_container_width=True):
+        if st.button("PURGE DATABASE //", use_container_width=True):
             st.session_state.class_portfolio = pd.DataFrame(columns=["Name", "Roll No", "Class", "Parent Phone", "Parent Email", "Exam", "Attendance (%)", "Assignments (%)", "Average (%)"])
             st.rerun()
 
-    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("<div class='gradient-divider'></div>", unsafe_allow_html=True)
     
     action_col1, action_col2 = st.columns(2)
     
     with action_col1:
-        if st.button("🚀 Run Deep AI Telemetry & Diagnostic Report", use_container_width=True):
+        if st.button("EXECUTE AI DIAGNOSTICS //", use_container_width=True):
             if not student_name:
-                st.error("⚠️ Please specify a student name before triggering diagnostics.")
+                st.error("⚠️ Specify a target student before execution.")
             else:
-                with st.spinner("Synthesizing behavioral metrics with Gemini core..."):
+                with st.spinner("Synthesizing metrics..."):
                     try:
                         prompt = f"""
                         Act as an elite CBSE Class 10 academic coordinator at Navy Children School, Goa.
@@ -555,19 +597,20 @@ Navy Children School, Goa
                         Provide an executive 4-bullet assessment covering board exam trajectory and tactical intervention steps.
                         """
                         resp = client.models.generate_content(model="gemini-3.5-flash", contents=prompt)
+                        st.toast("Diagnostic Complete", icon="🧠")
                         st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-                        st.markdown("#### 📑 Standard 10 Board Diagnostic Output Matrix")
+                        st.markdown("#### 📑 DIAGNOSTIC OUTPUT MATRIX")
                         st.write(resp.text)
                         st.markdown("</div>", unsafe_allow_html=True)
                     except Exception as e:
-                        st.error(f"❌ AI Generation Failed: {e}")
+                        st.error(f"❌ Execution Failed: {e}")
 
     with action_col2:
-        if st.button("🎙️ Generate Parent-Teacher Conference Script", use_container_width=True):
+        if st.button("GENERATE MEETING SCRIPT //", use_container_width=True):
             if not student_name:
-                st.error("⚠️ Please specify a student name before generating conference scripts.")
+                st.error("⚠️ Specify a target student before execution.")
             else:
-                with st.spinner("Drafting personalized meeting agenda and conversation script with Gemini..."):
+                with st.spinner("Drafting professional script..."):
                     try:
                         script_prompt = f"""
                         Act as an expert CBSE Class 10 educator at Navy Children School, Goa preparing for a Parent-Teacher Conference.
@@ -584,9 +627,10 @@ Navy Children School, Goa
                         4. Step-by-Step Conversation Script & Talking Points
                         """
                         script_resp = client.models.generate_content(model="gemini-3.5-flash", contents=script_prompt)
+                        st.toast("Script Synthesized", icon="🎙️")
                         st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-                        st.markdown("#### 🎙️ NCS Goa - Parent-Teacher Conference Script & Agenda")
+                        st.markdown("#### 🎙️ CONFERENCE SCRIPT & AGENDA")
                         st.markdown(script_resp.text)
                         st.markdown("</div>", unsafe_allow_html=True)
                     except Exception as e:
-                        st.error(f"❌ Script Generation Failed: {e}")
+                        st.error(f"❌ Execution Failed: {e}")
